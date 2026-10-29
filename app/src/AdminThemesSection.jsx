@@ -38,7 +38,7 @@ export function AdminThemesSection({ token, adminProfile }) {
       if (val && typeof val === 'object' && Array.isArray(val.enabled)) {
         setConfig({
           default: val.default || DEFAULT_THEME,
-          enabled: val.enabled,
+          enabled: val.enabled.includes('sky') ? val.enabled : [...val.enabled, 'sky'],
           forceAll: Boolean(val.forceAll),
           forceVersion: val.forceVersion || 0,
         })
@@ -167,7 +167,7 @@ export function AdminThemesSection({ token, adminProfile }) {
         dbKvSet('app_config%3Athemes', config),
       ])
       if (ok1 || ok2) {
-        toast('Đã lưu cấu hình 8 bộ giao diện')
+        toast('Đã lưu cấu hình giao diện thành công')
       } else {
         toast('Lỗi khi lưu lên Cloudflare!')
       }
@@ -184,7 +184,7 @@ export function AdminThemesSection({ token, adminProfile }) {
       <div className="kadm-mode-tabs" role="tablist" aria-label="Các phần của Giao diện app">
         {[
           { id: 'designer', label: 'Thiết kế bộ giao diện', Icon: Palette },
-          { id: 'quick', label: '8 bộ gốc và giao diện mặc định', Icon: Star },
+          { id: 'quick', label: 'Các bộ gốc & giao diện mặc định', Icon: Star },
           { id: 'seasons', label: 'Theo mùa (3 bộ)', Icon: CalendarHeart },
           { id: 'motion', label: 'Xem trước chuyển động', Icon: Clapperboard },
         ].map(({ id, label, Icon }) => (
@@ -206,7 +206,7 @@ export function AdminThemesSection({ token, adminProfile }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
             <div>
               <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                8 bộ giao diện của app
+                Các bộ giao diện thường ngày của app
               </h3>
           <p style={{ margin: '4px 0 0', color: 'var(--adm-sub)', fontSize: 13.5 }}>
             Bật/tắt các bộ hiển thị cho phụ huynh, chỉ định cờ giao diện mặc định (bấm nút là đổi và tự động lưu đám mây).
