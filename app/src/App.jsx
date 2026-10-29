@@ -1,0 +1,2255 @@
+import { appAlert, appConfirm, appPrompt } from './dialog'
+import { useContext, useEffect, useMemo, useRef, useState, Component, lazy, Suspense } from 'react'
+import { lazyWithReload } from './lazyReload.js'
+import { AppCtx } from './ctx'
+import { PROBLEM, SCHEDULE_DEFAULT, EMOJIS, GRADES, BOOKS, CALM_LINES, AVAILABLE_STICKERS, SAMPLE_STICKER_HISTORY } from './data'
+import { toast, onToast, speak, boom, fmtTime, markSampleStickers, getWeekLabel, getVnMondayStart } from './utils'
+import { soundTap, soundPop, soundSuccess, soundWrong, soundBreathe, soundWoodBlock, soundFanfare, isSoundEnabled, toggleSound, onSoundChange } from './audio'
+import { Stepper, VoiceInputBtn } from './ui'
+import { dbKvGet, dbKvSet, aiPractice, aiExplain, saveTeachingFeedback, cloudLoadState, cloudSaveState, cloudDeleteFamily, getAuthToken, setAuthToken, removeAuthToken, loadPublicConfig, syncPublicConfig, fetchClassPreview, sendAiFeedback, getSafetySummary, clearLearnerHistory, recordRewardEvent, deleteBadgeEvents } from './api'
+import * as Scr from './screens'
+import { ThemePickerSheet } from './ThemePickerSheet'
+import { AddChildSheet, EditChildSheet } from './ChildSheets'
+import { ThemeDecor } from './ThemeDecor'
+import { applyTheme } from './themes'
+import { BookOpen, Sparkles, BarChart3, User, Gamepad2, Wind, X } from 'lucide-react'
+// agent baocao: icon cho bảng Hẹn giờ, Sổ sticker, màn lỗi
+import { BookOpen as BkBook, Coffee as BkCoffee, Pause as BkPause, Play as BkPlay, Minus as BkMinus, Plus as BkPlus, Timer as BkTimer, Gift as BkGift, Trophy as BkTrophy, Lock as BkLock, Check as BkCheck, RotateCw as BkReload, Home as BkHome } from 'lucide-react'
+import { SeasonParticles } from './seasons/SeasonParticles'
+import { useStudyTracker } from './useStudyTracker'
+import { CalmCornerModal } from './CalmCornerModal'
+import { ErrorBoundary } from './ErrorBoundary'
+import { initClientErrorLogging } from './clientErrors'
+import { sanitizeAppState, sanitizeSession } from './stateShape.js'
+import { getTrialInitialState, TRIAL_SESSION, PRELOADED_TRIAL_LESSONS, setActiveTrialLesson } from './trialData'
+
+initClientErrorLogging()
+
+const LoginScreen = lazyWithReload(() => import('./Login'))
+const AdminPortal = lazyWithReload(() => import('./Admin'))
+const TeacherPortal = lazyWithReload(() => import('./TeacherPortal'))
+const DevUiKitPage = lazyWithReload(() => import('./admin/DevUiKitPage'))
+const FamilyMembersSheet = lazyWithReload(() => import('./FamilyMembersSheet').then(m => ({ default: m.FamilyMembersSheet })))
+const JoinFamilyView = lazyWithReload(() => import('./JoinFamilyView').then(m => ({ default: m.JoinFamilyView })))
+const PublicReportView = lazyWithReload(() => import('./PublicReportView').then(m => ({ default: m.PublicReportView })))
+const FamilyClassSheet = lazyWithReload(() => import('./FamilyClassSheet').then(m => ({ default: m.FamilyClassSheet })))
+import { BuddyPopLayer, ThemeBuddy } from './themes/buddies/buddySvgs'
+import { CloudOff, RefreshCw, Loader2 } from 'lucide-react'
+import MotionLayer from './MotionLayer'
+import { xungHoPair, setCurrentXungHo } from './xungHo'
+import { swapMe } from './xungHo'
+
+const SESSION_KEY = 'kem-con-hoc:session'
+const famLsKey = (id) => `kem-con-hoc:fam:${id}`
+const famCloudKey = (id) => `fam:${id}:state`
+
+const isAdminRoute = () => {
+  if (typeof window === 'undefined') return false
+  const p = window.location.pathname.toLowerCase()
+  const h = window.location.hash.toLowerCase()
+  return p === '/admin' || p.startsWith('/admin/') || p === '/admingraph' || p.startsWith('/admingraph/') || h === '#admin' || h.startsWith('#admin')
+}
+
+const isTeacherRoute = () => {
+  if (typeof window === 'undefined') return false
+  const p = window.location.pathname.toLowerCase()
+  const h = window.location.hash.toLowerCase()
+  return p === '/teacher' || p.startsWith('/teacher/') || h === '#teacher' || h.startsWith('#teacher')
+}
+
+const isDevUiKitRoute = () => {
+  if (typeof window === 'undefined') return false
+  const p = window.location.pathname.toLowerCase()
+  const h = window.location.hash.toLowerCase()
+  return p === '/dev/ui-kit' || h === '#/dev/ui-kit' || h === '#dev/ui-kit'
+}
+
+const getJoinCodeFromUrl = () => {
+  if (typeof window === 'undefined') return ''
+  const p = window.location.pathname
+  if (p.startsWith('/join/')) return p.replace('/join/', '').trim().toUpperCase()
+  const params = new URLSearchParams(window.location.search)
+  return (params.get('join') || params.get('join_code') || '').trim().toUpperCase()
+}
+
+const PENDING_JOIN_KEY = 'kem-con-hoc:pending-join'
+
+const getClassJoinFromUrl = () => {
+  if (typeof window === 'undefined') return null
+  const p = window.location.pathname
+  const h = window.location.hash || ''
+  if (p.startsWith('/vao-lop/m/')) {
+    return { code: p.replace('/vao-lop/m/', '').trim().toUpperCase(), type: 'claim' }
+  }
+  if (p.startsWith('/vao-lop/')) {
+    return { code: p.replace('/vao-lop/', '').trim().toUpperCase(), type: 'class' }
+  }
+  if (h.startsWith('#vao-lop/m/')) {
+    return { code: h.replace('#vao-lop/m/', '').trim().toUpperCase(), type: 'claim' }
+  }
+  if (h.startsWith('#vao-lop/')) {
+    return { code: h.replace('#vao-lop/', '').trim().toUpperCase(), type: 'class' }
+  }
+  const params = new URLSearchParams(window.location.search)
+  const qClass = params.get('class') || params.get('join_class') || params.get('class_code')
+  if (qClass) return { code: qClass.trim().toUpperCase(), type: 'class' }
+  const qClaim = params.get('claim') || params.get('claim_code')
+  if (qClaim) return { code: qClaim.trim().toUpperCase(), type: 'claim' }
+  return null
+}
+
+const getPendingJoin = () => {
+  try {
+    const raw = localStorage.getItem(PENDING_JOIN_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (Date.now() - parsed.ts > 30 * 60 * 1000) {
+      localStorage.removeItem(PENDING_JOIN_KEY)
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const setPendingJoin = (code, type) => {
+  try {
+    localStorage.setItem(PENDING_JOIN_KEY, JSON.stringify({ code, type, ts: Date.now() }))
+  } catch {}
+}
+
+const clearPendingJoin = () => {
+  try {
+    localStorage.removeItem(PENDING_JOIN_KEY)
+  } catch {}
+}
+
+const getReportTokenFromUrl = () => {
+  if (typeof window === 'undefined') return ''
+  const p = window.location.pathname
+  if (p.startsWith('/r/')) return p.replace('/r/', '').trim()
+  const params = new URLSearchParams(window.location.search)
+  return (params.get('report') || params.get('r') || '').trim()
+}
+
+const readSession = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const magicToken = params.get('magic_token') || params.get('auth_token') || (params.get('token') && !params.get('report') && !params.get('r') && !window.location.pathname.startsWith('/r/') ? params.get('token') : null)
+      if (magicToken) {
+        setAuthToken(magicToken)
+        const famId = params.get('family_id') || params.get('fam_id') || 'fam_magic'
+        const famName = params.get('family_name') || params.get('name') || 'Gia đình vui vẻ'
+        const sess = { id: famId, name: famName, token: magicToken }
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sess))
+        return sess
+      }
+    }
+    const s = sanitizeSession(JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'))
+    if (!s) { try { if (localStorage.getItem(SESSION_KEY)) localStorage.removeItem(SESSION_KEY) } catch { /* ignore */ } }
+    return s
+  } catch (e) {
+    // Gói 33 · B3: phiên hỏng thì bỏ khoá phiên, về màn đăng nhập
+    try { localStorage.removeItem(SESSION_KEY) } catch { /* ignore */ }
+    return null
+  }
+}
+
+const defaultStats = (id) => ({
+  stickers: 0,
+  stickersList: [],
+  stickerHistory: [],
+  aiLongitudinalInsight: null,
+  weak: [],
+  strong: [],
+  history: [],
+  calmWeek: 0,
+  calmLast: 0,
+  calmHistory: [],
+  sessionsMom: 0,
+  sessionsDad: 0,
+})
+
+const initialState = () => ({
+  onboarded: false,
+  parent: 'Mẹ',
+  tone: 'Nhẹ nhàng',
+  partner: false,
+  children: [{ id: 'na', name: 'Na', emoji: '🦄', grade: 'Lớp 3', book: 'Kết nối tri thức' }],
+  activeId: 'na',
+  stats: {
+    na: {
+      stickers: 0,
+      stickersList: [],
+      stickerHistory: [],
+      aiLongitudinalInsight: null,
+      weak: [],
+      strong: [],
+      history: [],
+      calmWeek: 0,
+      calmLast: 0,
+      calmHistory: [],
+      sessionsMom: 0,
+      sessionsDad: 0,
+    },
+  },
+  schedule: SCHEDULE_DEFAULT,
+  flow: { step: 0, stuck: 0, unlocked: false, result: null, ocr: PROBLEM.ocr },
+  problem: PROBLEM,
+  theme: (typeof localStorage !== 'undefined' ? localStorage.getItem('kem-con-hoc:theme') : null) || 'bear',
+  motion: (typeof localStorage !== 'undefined' ? localStorage.getItem('kem-con-hoc:motion') : null) || 'full',
+  cloudSync: true,
+  _ts: 0,
+})
+
+function loadState(lsKey) {
+  try {
+    if (lsKey && lsKey.includes('fam_trial')) {
+      return getTrialInitialState()
+    }
+    const raw = localStorage.getItem(lsKey)
+    const savedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('kem-con-hoc:theme') : null
+    const savedMotion = typeof localStorage !== 'undefined' ? localStorage.getItem('kem-con-hoc:motion') : null
+    if (!raw) {
+      const init = initialState()
+      if (savedTheme) init.theme = savedTheme
+      if (savedMotion) init.motion = savedMotion
+      return init
+    }
+    let saved
+    try {
+      saved = JSON.parse(raw)
+    } catch {
+      // Gói 33 · B3: khoá hỏng thì bỏ khoá đó, không để app sập
+      try { localStorage.removeItem(lsKey) } catch { /* ignore */ }
+      saved = null
+    }
+    const { state: base, fixes } = sanitizeAppState(saved, initialState(), defaultStats)
+    if (fixes.length) {
+      console.warn('[KCH] dữ liệu đã lưu sai hình dạng, đã sửa:', fixes)
+      try { window.__reportClientError?.(new Error('state_shape_fixed: ' + fixes.slice(0, 8).join(',')), { kind: 'state_shape' }) } catch { /* ignore */ }
+      if (fixes.includes('root')) { try { localStorage.removeItem(lsKey) } catch { /* ignore */ } }
+    }
+    saved = saved && typeof saved === 'object' ? saved : {}
+    if (savedTheme && !saved.theme) base.theme = savedTheme
+    if (savedMotion && !saved.motion) base.motion = savedMotion
+    if (base.stats) {
+      Object.keys(base.stats).forEach((k) => {
+        if (base.stats[k]?.stickerHistory) {
+          base.stats[k].stickerHistory = markSampleStickers(base.stats[k].stickerHistory)
+        }
+      })
+    }
+    return base
+  } catch (e) {
+    return initialState()
+  }
+}
+
+const TAB_OF = {
+  home: 'home', snap: 'home', analyze: 'home', explain: 'home', scaffold: 'home', done: 'home', ask: 'home', chat: 'home',
+  toy: 'toy', game: 'toy',
+  report: 'report',
+  profile: 'profile',
+}
+
+class ScreenErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+  componentDidCatch(error, info) {
+    console.error('Screen crash caught by ScreenErrorBoundary:', error, info)
+    try { window.__reportClientError?.(error, { componentStack: info?.componentStack, kind: 'screen_boundary' }) } catch { /* ignore */ }
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.screen !== this.props.screen && this.state.hasError) {
+      this.setState({ hasError: false, error: null })
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="k-err">
+          {/* agent baocao: LoiTaiApp.dc.html, màn lỗi thân thiện có linh vật của bộ giao diện */}
+          <div className="k-err-buddy" aria-hidden="true"><ThemeBuddy state="oops" size={112} fallback={<Sparkles size={48} />} /></div>
+          <h3 role="alert">
+            {['analyze', 'explain', 'scaffold'].includes(this.props.screen) ? 'Gấu chưa soạn được bài này' : 'Có chút trục trặc nhỏ khi nạp trang này'}
+          </h3>
+          <p>
+            Bạn đừng lo nhé! Bấm nút bên dưới để quay lại màn hình chính nhé.
+          </p>
+          <div className="k-err-acts">
+            <button
+              type="button"
+              className="btn solid"
+              onClick={() => {
+                this.setState({ hasError: false, error: null })
+                this.props.onReset && this.props.onReset()
+              }}
+            >
+              <BkHome size={20} aria-hidden="true" />
+              Quay lại trang chính
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => this.setState({ hasError: false, error: null })}
+            >
+              <BkReload size={18} aria-hidden="true" />
+              Thử lại
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+export default function App() {
+  const [session, setSession] = useState(readSession)
+  const [showAdmin, setShowAdmin] = useState(isAdminRoute)
+  const [showTeacher, setShowTeacher] = useState(isTeacherRoute)
+  const [showDevUiKit, setShowDevUiKit] = useState(isDevUiKitRoute)
+  const [joinCode, setJoinCode] = useState(getJoinCodeFromUrl)
+  const [reportToken, setReportToken] = useState(getReportTokenFromUrl)
+  const famId = session ? session.id : null
+  const LS_KEY = famId ? famLsKey(famId) : 'kem-con-hoc:v1'
+  const CLOUD_KEY = famId ? famCloudKey(famId) : 'kem-con-hoc:state'
+  const [S, setS] = useState(() => (famId ? loadState(LS_KEY) : initialState()))
+  const [screen, setScreen] = useState(S.onboarded ? 'home' : 'onb')
+  // Gói 33 · B3: ngữ cảnh gửi kèm mọi lỗi (màn đang ở, lớp của bé, bộ giao diện)
+  useEffect(() => {
+    try {
+      const c = (Array.isArray(S.children) && (S.children.find((x) => x.id === S.activeId) || S.children[0])) || null
+      window.__kchCtx = { screen, grade: c?.grade || null, theme: S.theme || null }
+    } catch { /* ignore */ }
+  }, [screen, S.activeId, S.children, S.theme])
+  const [sheet, setSheet] = useState(null)
+  const [classJoinBanner, setClassJoinBanner] = useState(null)
+  const [msg, setMsg] = useState('')
+  const [toastUndo, setToastUndo] = useState(null)
+  const [study, setStudy] = useState(null)
+  const scrollRef = useRef(null)
+  // Đợt 15 chặng 6: dải Dùng thử thu gọn, mở thẳng tab đăng ký, nút nổi thu tròn khi cuộn
+  const [trialCollapsed, setTrialCollapsed] = useState(false)
+  const [loginMode, setLoginMode] = useState('login')
+  const [fabCompact, setFabCompact] = useState(false)
+  const lastScrollTopRef = useRef(0)
+  const toastTimer = useRef(null)
+  const cloudTimer = useRef(null)
+  const lastServerTsRef = useRef(null)
+  const isMergingRef = useRef(false)
+  const hydratedRef = useRef(false)
+  const lastSavedHashRef = useRef('')
+  const [hydrated, setHydrated] = useState(false)
+  // Đợt 15 P0.D: trạng thái tải state từ máy chủ ('loading' | 'ok' | 'error')
+  const [cloudStatus, setCloudStatus] = useState(famId && !session?.isTrial ? 'loading' : 'ok')
+  const [cloudRetry, setCloudRetry] = useState(0)
+
+  useEffect(() => {
+    const onHash = () => {
+      if (isAdminRoute()) setShowAdmin(true)
+      if (isTeacherRoute()) setShowTeacher(true)
+      if (isDevUiKitRoute()) setShowDevUiKit(true)
+    }
+    window.addEventListener('hashchange', onHash)
+    window.addEventListener('popstate', onHash)
+    return () => {
+      window.removeEventListener('hashchange', onHash)
+      window.removeEventListener('popstate', onHash)
+    }
+  }, [])
+
+  useEffect(() => {
+    const off = onToast((m, opts) => {
+      setMsg(m)
+      setToastUndo(() => (opts && typeof opts.undo === 'function' ? opts.undo : null))
+      clearTimeout(toastTimer.current)
+      toastTimer.current = setTimeout(() => { setMsg(''); setToastUndo(null) }, opts?.undo ? 6000 : 2300)
+    })
+    return off
+  }, [])
+
+  /* ---------- kiểm tra link vào lớp học (/vao-lop/:code) ---------- */
+  useEffect(() => {
+    const classJoin = getClassJoinFromUrl()
+    if (classJoin) {
+      if (session && getAuthToken()) {
+        setPendingJoin(classJoin.code, classJoin.type)
+        openSheet('familyClasses', { code: classJoin.code, joinType: classJoin.type })
+      } else {
+        fetchClassPreview(classJoin.code).then((res) => {
+          if (res?.ok && res.class) {
+            setPendingJoin(classJoin.code, classJoin.type)
+            setClassJoinBanner(res.class)
+          } else {
+            clearPendingJoin()
+            setClassJoinBanner({ error: true, message: 'Mã lớp không còn dùng được' })
+          }
+        }).catch(() => {
+          clearPendingJoin()
+          setClassJoinBanner({ error: true, message: 'Mã lớp không còn dùng được' })
+        })
+      }
+    } else {
+      const pending = getPendingJoin()
+      if (pending) {
+        if (session && getAuthToken()) {
+          clearPendingJoin()
+          openSheet('familyClasses', { code: pending.code, joinType: pending.type })
+        } else {
+          fetchClassPreview(pending.code).then((res) => {
+            if (res?.ok && res.class) {
+              setClassJoinBanner(res.class)
+            } else {
+              clearPendingJoin()
+              setClassJoinBanner({ error: true, message: 'Mã lớp không còn dùng được' })
+            }
+          }).catch(() => {
+            clearPendingJoin()
+            setClassJoinBanner({ error: true, message: 'Mã lớp không còn dùng được' })
+          })
+        }
+      }
+    }
+  }, [session])
+
+  /* ---------- áp dụng theme và hiệu ứng chuyển động ---------- */
+  useEffect(() => {
+    if (showAdmin || showTeacher) {
+      applyTheme('bear', 'full')
+    } else {
+      applyTheme(S.theme || 'bear', S.motion || 'full')
+    }
+  }, [showAdmin, showTeacher, S.theme, S.motion])
+
+  /* ---------- đồng bộ cấu hình công khai khi app trở lại từ nền sau hơn 10 phút ---------- */
+  useEffect(() => {
+    let lastActive = Date.now()
+    const onVis = () => {
+      if (document.visibilityState === 'visible') {
+        const elapsed = Date.now() - lastActive
+        if (elapsed > 10 * 60 * 1000) {
+          syncPublicConfig(true)
+        }
+        lastActive = Date.now()
+      } else {
+        lastActive = Date.now()
+      }
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
+
+  /* ---------- đồng bộ screen theo trạng thái onboarded ---------- */
+  useEffect(() => {
+    // Đợt 18 · Chặng 0.6: Chỉ hiện màn khai báo sau khi đã tải xong dữ liệu đám mây (hydrated)
+    if (famId && !session?.isTrial && !hydrated) return
+    if (!S.onboarded && screen !== 'onb') setScreen('onb')
+    else if (S.onboarded && screen === 'onb') setScreen('home')
+  }, [S.onboarded, hydrated, famId, session])
+
+  /* ---------- tải cấu hình công khai (Scope rules, Theme mặc định, Prompt Studio, Router) ---------- */
+  useEffect(() => {
+    syncPublicConfig(false)
+      .then((cfg) => {
+        const themesCfg = cfg?.themesConfig
+        const defaultTheme = themesCfg?.default
+        const forceAll = Boolean(themesCfg?.forceAll)
+        const forceVersion = themesCfg?.forceVersion || 0
+        const lastAppliedForce = parseInt(localStorage.getItem('kem-con-hoc:last-applied-force-theme') || '0', 10)
+
+        if (defaultTheme) {
+          const userCustomized = localStorage.getItem('kem-con-hoc:user-custom-theme')
+          if (forceAll) {
+            // Admin ép đổi giao diện cho TẤT CẢ người dùng (kể cả ai đã tự setup)
+            if (forceVersion > lastAppliedForce || localStorage.getItem('kem-con-hoc:theme') !== defaultTheme) {
+              try {
+                localStorage.removeItem('kem-con-hoc:user-custom-theme')
+                localStorage.setItem('kem-con-hoc:last-applied-force-theme', String(forceVersion || Date.now()))
+              } catch (e) {}
+              applyTheme(defaultTheme, S.motion || 'full')
+              setS((prev) => ({ ...prev, theme: defaultTheme }))
+            }
+          } else {
+            // Chỉ áp dụng cho người dùng chưa từng tự setup giao diện
+            if (!userCustomized) {
+              applyTheme(defaultTheme, S.motion || 'full')
+              setS((prev) => ({ ...prev, theme: defaultTheme }))
+            }
+          }
+        }
+      })
+      .catch(() => { })
+  }, [])
+
+  /* ---------- hydrate từ đám mây (D1) khi mở app ---------- */
+  useEffect(() => {
+    if (!famId) return
+    let cancelled = false
+    if (!session?.isTrial) setCloudStatus('loading')
+      ; (async () => {
+        const cloud = await cloudLoadState(famId)
+        if (cancelled) return
+        if (cloud && cloud.error) {
+          // Không tải được state: KHÔNG hiện màn khai báo, KHÔNG ghi đè máy chủ
+          setCloudStatus('error')
+          return
+        }
+        let localRaw = null
+        let localTs = 0
+        try {
+          localRaw = localStorage.getItem(LS_KEY)
+          if (localRaw) localTs = JSON.parse(localRaw)._ts || 0
+        } catch (e) { }
+
+        if (cloud && cloud.serverTs) {
+          lastServerTsRef.current = cloud.serverTs
+        }
+
+        let localOnboarded = false
+        try {
+          localOnboarded = Boolean(localRaw && JSON.parse(localRaw).onboarded)
+        } catch (e) { }
+        const cloudOnboarded = Boolean(cloud?.state?.onboarded)
+        const cloudHasChildren = Array.isArray(cloud?.state?.children) && cloud.state.children.length > 0
+        // Đồng bộ khi máy này chưa có dữ liệu HOẶC cloud mới hơn
+        // HOẶC máy này chưa khai báo mà máy chủ đã khai báo / đã có hồ sơ con (P0.D)
+        if (
+          cloud && cloud.state &&
+          ((cloud.ts > 0 && (!localRaw || cloud.ts > localTs)) || (!localOnboarded && (cloudOnboarded || cloudHasChildren)))
+        ) {
+          let nextState = { ...initialState(), ...cloud.state, _ts: cloud.ts }
+          if (cloudOnboarded || cloudHasChildren) {
+            nextState.onboarded = true
+          }
+          const userCustomized = localStorage.getItem('kem-con-hoc:user-custom-theme')
+          const lastAppliedForce = parseInt(localStorage.getItem('kem-con-hoc:last-applied-force-theme') || '0', 10)
+          if (!userCustomized && lastAppliedForce > 0) {
+            const currentTheme = localStorage.getItem('kem-con-hoc:theme')
+            if (currentTheme) {
+              nextState.theme = currentTheme
+            }
+          }
+          isMergingRef.current = true
+          setS(nextState)
+          toast('Đã đồng bộ dữ liệu mới nhất từ đám mây ☁️')
+        }
+        try {
+          const { screen: _s, study: _st, _ts: _t, ...initRest } = (cloud?.state || S)
+          lastSavedHashRef.current = JSON.stringify(initRest)
+        } catch (e) {}
+        hydratedRef.current = true
+        setHydrated(true)
+        setCloudStatus('ok')
+      })()
+    return () => {
+      cancelled = true
+    }
+  }, [famId, cloudRetry])
+
+  /* ---------- lưu localStorage + đồng bộ cloud (debounce & hash check P2.8) ---------- */
+  useEffect(() => {
+    if (!famId) return
+    const { screen: _s, study: _st, _ts: _t, ...rest } = S
+    if (!hydratedRef.current) return
+
+    let serialized = ''
+    try {
+      serialized = JSON.stringify(rest)
+    } catch (e) {
+      serialized = ''
+    }
+
+    const payload = { ...rest, _ts: Date.now() }
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(payload))
+    } catch (e) { }
+
+    if (isMergingRef.current) {
+      isMergingRef.current = false
+      lastSavedHashRef.current = serialized
+      return
+    }
+
+    if (!S.cloudSync || session?.isTrial) return
+    // P0.D: chưa khai báo xong thì không ghi lên máy chủ (tránh đè hồ sơ con đã có)
+    if (!S.onboarded) return
+    // Chỉ ghi cloud khi state thực sự thay đổi nội dung (P2.8)
+    if (lastSavedHashRef.current === serialized) {
+      return
+    }
+
+    clearTimeout(cloudTimer.current)
+    cloudTimer.current = setTimeout(async () => {
+      const saveRes = await cloudSaveState(famId, payload, lastServerTsRef.current)
+      if (saveRes && saveRes.saved && saveRes.ts) {
+        lastServerTsRef.current = saveRes.ts
+        lastSavedHashRef.current = serialized
+      } else if (saveRes && saveRes.conflict) {
+        lastServerTsRef.current = saveRes.serverTs || null
+        // Gộp state khi có xung đột (Section 3 Prompt 00)
+        const serverStickers = saveRes.serverState?.stickerHistory || []
+        const localStickers = payload.stickerHistory || []
+        const mergedMap = new Map()
+        serverStickers.forEach((st) => mergedMap.set(st.id || `${st.name}_${st.earnedAt}`, st))
+        localStickers.forEach((st) => mergedMap.set(st.id || `${st.name}_${st.earnedAt}`, st))
+        const mergedHistory = Array.from(mergedMap.values())
+        
+        isMergingRef.current = true
+        setS((prev) => ({
+          ...saveRes.serverState,
+          ...prev,
+          stickerHistory: mergedHistory,
+          _ts: saveRes.serverTsMs || Date.now(),
+        }))
+        lastSavedHashRef.current = JSON.stringify({ ...saveRes.serverState, stickerHistory: mergedHistory })
+        toast('Đã gộp dữ liệu đồng bộ an toàn ⭐️')
+      }
+    }, 2500)
+  }, [S, hydrated, famId])
+
+  /* ---------- study timer ---------- */
+  useEffect(() => {
+    if (!study || !study.running) return
+    const t = setInterval(() => {
+      setStudy((s) => {
+        if (!s) return s
+        const left = s.left - 1
+        if (left > 0) return { ...s, left }
+        if (s.phase === 'study') {
+          if (s.round < s.rounds) {
+            toast('⏸ Hết 15 phút! Nghỉ 5 phút nhé 💚')
+            return { ...s, phase: 'break', left: 300 }
+          }
+          toast(`🎉 Xong ${s.rounds} vòng! Khen con thật to rồi nghỉ.`)
+          return null
+        }
+        toast(`💪 Vòng ${s.round + 1} bắt đầu!`)
+        return { ...s, phase: 'study', left: 900, round: s.round + 1 }
+      })
+    }, 1000)
+    return () => clearInterval(t)
+  }, [study && study.running])
+
+  /* ---------- âm thanh toàn ứng dụng ---------- */
+  const [soundOn, setSoundOn] = useState(isSoundEnabled)
+
+  useEffect(() => {
+    return onSoundChange((enabled) => setSoundOn(enabled))
+  }, [])
+
+  const handleToggleSound = () => {
+    const next = toggleSound()
+    setSoundOn(next)
+    toast(next ? 'Đã bật âm thanh vui nhộn 🔊' : 'Đã tắt âm thanh 🔇')
+  }
+
+  /* ---------- actions ---------- */
+  const patch = (obj) => setS((prev) => (typeof obj === 'function' ? obj(prev) : { ...prev, ...obj }))
+  const go = (id) => {
+    if (id !== 'onb' && !TAB_CAP[id]) {
+      const msg = `Lỗi điều hướng: Màn hình "${id}" không tồn tại trong TAB_CAP!`
+      console.error(msg, { validScreens: Object.keys(TAB_CAP) })
+      if (typeof window !== 'undefined' && (import.meta.env.DEV || window.location.hostname.includes('localhost') || window.location.hostname.includes('pages.dev'))) {
+        try { toast(`⚠️ ${msg}`) } catch (_) {}
+      }
+    }
+    setScreen(id)
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0 }))
+  }
+  if (typeof window !== 'undefined') {
+    window.__kchGo = go
+    window.__kchPatch = (p) => setS((prev) => ({ ...prev, ...(typeof p === 'function' ? p(prev) : p) }))
+  }
+  const openSheet = (type, data) => {
+    if (type === 'calm') {
+      const nowTs = Date.now()
+      const curStats = S.stats[S.activeId] || defaultStats(S.activeId)
+      const calmHist = [...(curStats.calmHistory || []), nowTs]
+      const currentMonday = getVnMondayStart(nowTs)
+      const prevMonday = currentMonday - 7 * 86400000
+      const cWeek = calmHist.filter((t) => t >= currentMonday).length
+      const cLast = calmHist.filter((t) => t >= prevMonday && t < currentMonday).length
+      setS((prev) => ({
+        ...prev,
+        stats: {
+          ...prev.stats,
+          [prev.activeId]: {
+            ...prev.stats[prev.activeId],
+            calmHistory: calmHist,
+            calmWeek: cWeek,
+            calmLast: cLast,
+          },
+        },
+      }))
+    }
+    setSheet({ type, data })
+  }
+  const closeSheet = () => setSheet(null)
+  if (typeof window !== "undefined") window.__kchCloseSheet = closeSheet
+
+  const rawStats = { ...defaultStats(S?.activeId), ...(S?.stats?.[S?.activeId] || {}) }
+  const stats = useMemo(() => {
+    const calmHist = rawStats.calmHistory || []
+    if (calmHist.length === 0) return rawStats
+    const currentMonday = getVnMondayStart(Date.now())
+    const prevMonday = currentMonday - 7 * 86400000
+    const cWeek = calmHist.filter((t) => t >= currentMonday).length
+    const cLast = calmHist.filter((t) => t >= prevMonday && t < currentMonday).length
+    return { ...rawStats, calmWeek: cWeek, calmLast: cLast }
+  }, [rawStats])
+
+  const setStats = (obj) =>
+    setS((prev) => ({ ...prev, stats: { ...prev.stats, [prev.activeId]: { ...prev.stats[prev.activeId], ...obj } } }))
+
+  /* ---------- đăng nhập / đăng xuất ---------- */
+  const handleAuthed = (s) => {
+    setLoginMode('login')
+    setTrialCollapsed(false)
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(s))
+      if (s?.isTrial) setAuthToken('trial_token')
+    } catch (e) { }
+    const loaded = s?.isTrial ? getTrialInitialState() : loadState(famLsKey(s.id))
+    setSession(s)
+    setS(loaded)
+    if (s?.isTrial) {
+      hydratedRef.current = true
+      setHydrated(true)
+      setCloudStatus('ok')
+    } else {
+      // Chờ tải state từ máy chủ rồi mới quyết định có hiện màn khai báo không (P0.D)
+      hydratedRef.current = false
+      setHydrated(false)
+      setCloudStatus('loading')
+    }
+    setStudy(null)
+    setScreen(loaded.onboarded ? 'home' : 'onb')
+
+    const pending = getPendingJoin()
+    if (pending && !s?.isTrial) {
+      clearPendingJoin()
+      openSheet('familyClasses', { code: pending.code, joinType: pending.type })
+    }
+  }
+
+  const logout = () => {
+    try {
+      localStorage.removeItem(SESSION_KEY)
+      removeAuthToken()
+      localStorage.removeItem('kem-con-hoc:fam:fam_trial')
+    } catch (e) { }
+    setSession(null)
+    setStudy(null)
+    setSheet(null)
+    setScreen('onb')
+  }
+
+  // 6.6: ✕ chỉ thu gọn dải; thoát Dùng thử là nút riêng có xác nhận
+  const exitTrial = async () => {
+    const ok = await appConfirm('Những gì vừa thử trong chế độ này sẽ không được lưu lại.', { title: 'Thoát chế độ dùng thử?', okText: 'Thoát dùng thử', cancelText: 'Ở lại' })
+    if (!ok) return
+    setLoginMode('login')
+    logout()
+  }
+  const startRegisterFromTrial = () => {
+    setLoginMode('register')
+    logout()
+  }
+
+  const handleScrollFab = (e) => {
+    const top = e.currentTarget.scrollTop
+    lastScrollTopRef.current = top
+    if (top > 40) {
+      if (!fabCompact) setFabCompact(true)
+    } else {
+      if (fabCompact) setFabCompact(false)
+    }
+  }
+
+  const wipe = async (opts = {}) => {
+    const confirmWipe = opts && opts.confirmed ? true : await appConfirm('Toàn bộ dữ liệu gia đình sẽ bị xoá vĩnh viễn trên máy chủ, không khôi phục được.', { title: 'Xoá toàn bộ dữ liệu?', okText: 'Tiếp tục', danger: true })
+    if (!confirmWipe) return
+    const pass = await appPrompt('Nhập mật khẩu gia đình để xác nhận xoá toàn bộ.', { title: 'Xác nhận bằng mật khẩu', type: 'password', okText: 'Xoá vĩnh viễn', danger: true, required: true })
+    if (!pass) return
+    const delRes = await cloudDeleteFamily(pass)
+    if (!delRes.ok) {
+      appAlert(delRes.error || 'Mật khẩu xác nhận không đúng.', { title: 'Chưa xoá được' })
+      return
+    }
+    try {
+      localStorage.removeItem(LS_KEY)
+      localStorage.removeItem(SESSION_KEY)
+      removeAuthToken()
+    } catch (e) { }
+    location.reload()
+  }
+
+  const tracker = useStudyTracker(S.activeId, S, setS)
+
+  const ctx = useMemo(
+    () => ({
+      S, patch, go, toast, openSheet, closeSheet, speak, boom, stats, setStats, study, setStudy,
+      tracker,
+      problem: S.problem || PROBLEM,
+      logout,
+      wipe,
+      session,
+      familyName: session ? session.name : '',
+      famId: famId || null,
+      openAdmin: () => setShowAdmin(true),
+      soundOn,
+      toggleSound: handleToggleSound,
+      // Prompt 29B: xưng hô theo người đang cầm máy (bố / mẹ / ông bà)
+      ...xungHoPair(S, session),
+    }),
+    [S, stats, study, session, soundOn, tracker]
+  )
+  // Prompt 29B: các lời gọi AI dùng đúng xưng hô của người đang cầm máy
+  useEffect(() => {
+    setCurrentXungHo(ctx.ho)
+  }, [ctx.ho])
+
+  const child = S.children.find((c) => c.id === S.activeId) || S.children[0]
+  const calmLabel = `${ctx.Ho || 'Bố mẹ'} bình tĩnh`
+
+  const waitingServerState = Boolean(famId && !session?.isTrial && (!hydrated || cloudStatus === 'loading'))
+  const ServerStateGate = () =>
+    cloudStatus === 'error' ? (
+      <div className="k-card k-gate" data-testid="server-state-error">
+        {/* [khung] linh vật + icon nét thay emoji; chữ và nút giữ nguyên */}
+        <div className="k-gate-art" aria-hidden="true">
+          <ThemeBuddy state="oops" size={96} fallback={<CloudOff size={44} strokeWidth={1.8} className="k-ic-acc" />} />
+        </div>
+        <p className="title k-h2" style={{ fontSize: 20 }}>Chưa tải được dữ liệu gia đình</p>
+        <p className="sub k-muted" style={{ margin: 0 }}>Mạng đang chập chờn. Hồ sơ của con vẫn an toàn trên máy chủ.</p>
+        <button className="btn primary solid" style={{ marginTop: 8, padding: '0 26px', display: 'inline-flex', alignItems: 'center', gap: 8 }} onClick={() => setCloudRetry((n) => n + 1)}>
+          <RefreshCw size={18} strokeWidth={2.2} aria-hidden="true" /> Thử lại
+        </button>
+      </div>
+    ) : (
+      <div className="k-gate is-loading" data-testid="server-state-loading" role="status">
+        <div className="k-gate-art" aria-hidden="true">
+          <ThemeBuddy state="reading" size={96} fallback={<Loader2 size={40} strokeWidth={2} className="k-ic-acc k-spin" />} />
+        </div>
+        <span className="k-muted" style={{ fontWeight: 700 }}>Đang tải dữ liệu gia đình…</span>
+      </div>
+    )
+  const ScreenComp = waitingServerState
+    ? ServerStateGate
+    : Scr[screen === 'onb' ? 'Onboarding' : TAB_CAP[screen]] || Scr.Home
+
+  if (showDevUiKit || isDevUiKitRoute()) {
+    return (
+      <Suspense fallback={<div className="stage" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Đang nạp UI Kit...</div>}>
+        <DevUiKitPage />
+      </Suspense>
+    )
+  }
+
+  if (showAdmin) {
+    return (
+      <Suspense fallback={<div className="stage" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Đang nạp Quản trị...</div>}>
+        <AdminPortal
+          onExit={() => {
+            setShowAdmin(false)
+            applyTheme(S.theme || 'bear', S.motion || 'full')
+            if (window.location.pathname.startsWith('/admin')) {
+              window.history.pushState(null, '', '/')
+            } else {
+              window.location.hash = ''
+            }
+          }}
+        />
+      </Suspense>
+    )
+  }
+
+  if (showTeacher) {
+    return (
+      <Suspense fallback={<div className="stage" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Đang nạp cổng giáo viên...</div>}>
+        <TeacherPortal
+          onExit={() => {
+            setShowTeacher(false)
+            applyTheme(S.theme || 'bear', S.motion || 'full')
+            if (window.location.pathname.startsWith('/teacher')) {
+              window.history.pushState(null, '', '/')
+            } else {
+              window.location.hash = ''
+            }
+          }}
+        />
+        {msg && (
+          <div className="toast" role="status" style={{ zIndex: 99999 }}>
+            {msg}
+          </div>
+        )}
+      </Suspense>
+    )
+  }
+
+  if (reportToken) {
+    return (
+      <Suspense fallback={<div className="stage" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Đang nạp báo cáo...</div>}>
+        <PublicReportView
+          reportToken={reportToken}
+          onHome={() => {
+            window.history.pushState(null, '', '/')
+            setReportToken('')
+          }}
+        />
+      </Suspense>
+    )
+  }
+
+  if (joinCode) {
+    return (
+      <Suspense fallback={<div className="stage" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Đang nạp lời mời...</div>}>
+        <JoinFamilyView
+          inviteCode={joinCode === 'ENTER_CODE' ? '' : joinCode}
+          onJoined={(res) => {
+            window.history.pushState(null, '', '/')
+            setJoinCode('')
+            window.location.reload()
+          }}
+          onCancel={() => {
+            window.history.pushState(null, '', '/')
+            setJoinCode('')
+          }}
+          toast={toast}
+          boom={boom}
+        />
+      </Suspense>
+    )
+  }
+
+  const hasToken = typeof window !== 'undefined' ? Boolean(getAuthToken() || session?.isTrial) : true
+  if (!session || (session && !hasToken)) {
+    return (
+      <AppCtx.Provider value={ctx}>
+        <div className="stage">
+          <div className="app login-app">
+            <ThemeDecor themeId={S.theme || 'bear'} motion={S.motion || 'full'} />
+            <div className="k-sky" aria-hidden="true"><i className="k-puff k-p1" /><i className="k-puff k-p2" /><i className="k-puff k-p3" /><i className="k-dot k-d1" /><i className="k-dot k-d2" /></div>
+            <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Đang nạp đăng nhập...</div>}>
+              <LoginScreen
+                initialMode={loginMode}
+                onAuthed={handleAuthed}
+                reauthSession={session && !hasToken ? session : null}
+                onOpenJoin={() => setJoinCode('ENTER_CODE')}
+                classJoinBanner={classJoinBanner}
+              />
+            </Suspense>
+          </div>
+        </div>
+      </AppCtx.Provider>
+    )
+  }
+
+  return (
+    <AppCtx.Provider value={ctx}>
+      <div className="stage">
+        <div className={`app parent-shell ${screen === 'scaffold' ? 'on-hoicon' : ''} ${screen === 'report' ? 'on-report' : ''} ${screen === 'done' ? 'on-done' : ''} ${screen === 'profile' ? 'on-profile' : ''}`}>
+          {session?.isTrial && !trialCollapsed && (
+            <div className="banner-trial-km k-trial" role="region" aria-label="Chế độ dùng thử">
+              <Sparkles className="k-trial-ic" size={18} strokeWidth={2} aria-hidden="true" />
+              <span className="k-trial-txt"><b>Đang dùng thử</b> · Không lưu đám mây</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className="btn-km btn-km-s btn-km-primary k-trial-cta"
+                  onClick={() => {
+                    setSession(null)
+                    removeAuthToken()
+                    try { localStorage.removeItem('kem-con-hoc:session') } catch (e) {}
+                    setLoginMode('register')
+                  }}
+                >
+                  Tạo tài khoản
+                </button>
+                <button
+                  type="button"
+                  className="k-trial-x"
+                  onClick={() => setTrialCollapsed(true)}
+                  title="Thu gọn"
+                  aria-label="Thu gọn"
+                >
+                  <X size={20} strokeWidth={2.4} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          )}
+          <ThemeDecor themeId={S.theme || 'bear'} motion={S.motion || 'full'} />
+          <SeasonParticles themeId={S.theme || 'bear'} motion={S.motion || 'full'} screen={screen} />
+          <div
+            className="scroll"
+            ref={scrollRef}
+            onScroll={handleScrollFab}
+            data-wide={['home', 'report', 'profile', 'toy'].includes(screen) ? '1' : undefined}
+          >
+            {/* [khung] mây/chấm trang trí đầu màn: nằm trong vùng cuộn nên cuộn theo nội dung, sau chữ, không bắt chạm */}
+            <div className="k-sky-anchor" aria-hidden="true">
+              <div className="k-sky"><i className="k-puff k-p1" /><i className="k-puff k-p2" /><i className="k-dot k-d1" /><i className="k-dot k-d2" /></div>
+            </div>
+            {study && study.running && (
+              <button className="timer-chip" onClick={() => openSheet('timer')}>
+                {study.phase === 'study' ? '📚 Học' : '☕ Nghỉ'} · {fmtTime(study.left)}{' '}
+                <small>vòng {study.round}/{study.rounds} · bấm để quản lý</small>
+              </button>
+            )}
+            <div key={screen} className="fadeIn" style={{ display: 'contents' }}>
+              <ScreenErrorBoundary screen={screen} onReset={() => setScreen('home')}>
+                <ScreenComp />
+              </ScreenErrorBoundary>
+            </div>
+          </div>
+
+          {S.onboarded && !['snap', 'analyze', 'explain', 'prep', 'scaffold', 'done', 'checkWork', 'check_work', 'check'].includes(screen) && (
+            <nav className="tabs">
+              {[
+                ['home', BookOpen, 'Học tối nay'],
+                ['toy', Gamepad2, 'Trò chơi'],
+                ['report', BarChart3, 'Báo cáo'],
+                ['profile', User, 'Con tôi'],
+              ].map(([k, IconComp, l]) => {
+                const isOn = TAB_OF[screen] === k
+                return (
+                  <button key={k} className={isOn ? 'on' : ''} onClick={() => go(k)} aria-current={isOn ? 'page' : undefined}>
+                    <span className="ic" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <IconComp size={21} strokeWidth={isOn ? 2.3 : 2} aria-hidden="true" />
+                    </span>
+                    <span>{l}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          )}
+
+          {S.onboarded && <BuddyPopLayer />}
+          {S.onboarded && <MotionLayer />}
+
+          {/* Gói 34: trả lại nút nổi "{Mẹ/Bố} bình tĩnh" như trước đợt 23 (bỏ nút tròn 😮‍💨 trên thanh trên) */}
+          {S.onboarded && (
+            <button
+              type="button"
+              data-testid="calm-fab"
+              className={`calm-fab ${['explain', 'scaffold', 'done', 'snap', 'analyze'].includes(screen) ? 'calm-fab-mini' : ''} ${fabCompact ? 'compact' : ''}`}
+              onClick={() => openSheet('calm')}
+              title={calmLabel}
+              aria-label={calmLabel}
+            >
+              <span className="calm-fab-ic" aria-hidden="true"><Wind size={18} strokeWidth={2.2} /></span> <span className="calm-fab-label">{calmLabel}</span>
+            </button>
+          )}
+
+          {S.onboarded && session?.isTrial && trialCollapsed && (
+            <button type="button" className="trial-mini" onClick={() => setTrialCollapsed(false)} aria-label="Mở lại dải dùng thử">
+              <Sparkles size={16} strokeWidth={2.2} aria-hidden="true" /> Dùng thử
+            </button>
+          )}
+
+          <div className={`toast ${msg ? 'show' : ''} ${toastUndo ? 'has-undo' : ''}`} role="status" aria-live="polite">
+            <span>{msg}</span>
+            {msg && toastUndo && (
+              <button
+                type="button"
+                className="toast-undo"
+                onClick={() => {
+                  const fn = toastUndo
+                  clearTimeout(toastTimer.current)
+                  setMsg('')
+                  setToastUndo(null)
+                  fn()
+                }}
+              >
+                Hoàn tác
+              </button>
+            )}
+          </div>
+
+          {sheet && (
+            <ErrorBoundary onClose={closeSheet} message="Có lỗi nhỏ khi mở cửa sổ này. Thử lại nhé!">
+              <SheetView type={sheet.type} data={sheet.data} session={session} />
+            </ErrorBoundary>
+          )}
+        </div>
+      </div>
+    </AppCtx.Provider>
+  )
+}
+
+const TAB_CAP = {
+  home: 'Home', snap: 'SnapHomework', analyze: 'Analyze', explain: 'Explain', prep: 'Explain',
+  scaffold: 'Scaffold', done: 'Done', ask: 'AskAI', chat: 'AskAI', toy: 'SnapToy',
+  game: 'Game', games: 'Game', report: 'Report', profile: 'Profile',
+  check: 'CheckWork', check_work: 'CheckWork', checkWork: 'CheckWork',
+}
+
+/* ============================================================
+   CÁC POPUP (BOTTOM SHEET)
+   ============================================================ */
+function SheetView({ type, data, session }) {
+  const { ho = 'bố mẹ' } = useContext(AppCtx) || {}
+  const { Ho = 'Bố mẹ' } = useContext(AppCtx) || {}
+  const { S, patch, go, closeSheet, toast, stats, setStats, boom, tracker } = useContext(AppCtx)
+  const child = S.children.find((c) => c.id === S.activeId) || S.children[0]
+
+  if (type === 'calm') {
+    return (
+      <CalmCornerModal
+        isOpen={true}
+        onClose={closeSheet}
+        currentProblem={S.problem}
+        currentStepIndex={S.flow?.step || 0}
+        child={child}
+        parentName={Ho}
+        themeId={S.theme || 'bear'}
+        onLowerDifficulty={async () => {
+          closeSheet()
+          patch({ flow: { ...S.flow, stuck: 0, lowering: true } })
+          toast('AI đang hạ độ khó với số nhỏ hơn 🪜⚡')
+          try {
+            const textToUse = S.problem?.ocr || S.flow?.ocr || PROBLEM.ocr
+            const lowerRes = await aiExplain(textToUse, child, S.tone, '', true)
+            if (lowerRes && lowerRes.steps && lowerRes.steps.length > 0) {
+              patch({
+                problem: { ...lowerRes, isSample: false },
+                flow: { ...S.flow, step: 0, stuck: 0, lowering: false, stepLog: [], revealedSteps: [], stepRevealTimes: [] },
+              })
+              toast('✅ Đã hạ độ khó! Con thử làm với số dễ hơn nhé')
+            } else {
+              patch({ flow: { ...S.flow, stuck: 0, lowering: false } })
+              toast('Mạng chậm, thử lại sau nhé')
+            }
+          } catch (err) {
+            patch({ flow: { ...S.flow, stuck: 0, lowering: false } })
+            toast('Mạng chậm, thử lại sau nhé')
+          }
+        }}
+        onOpenHint={() => {
+          closeSheet()
+          patch({ flow: { ...S.flow, unlocked: true } })
+          toast('Đã mở gợi ý đồ vật thật cho con 💡')
+        }}
+        onSaveAndStop={() => {
+          closeSheet()
+          patch({
+            pendingProblemResume: {
+              problem: S.problem,
+              step: S.flow?.step || 0,
+              unlocked: S.flow?.unlocked || false,
+              savedAt: Date.now(),
+            },
+            flow: { ...S.flow, step: 0, stuck: 0, stepLog: [], revealedSteps: [], stepRevealTimes: [] },
+          })
+          if ((S.flow?.step || 0) >= 1 && tracker?.recordSession) {
+            tracker.recordSession({
+              problemType: S.problem?.dang_bai || 'Toán',
+              totalSteps: (S.problem?.steps || []).length || 4,
+              selfSteps: S.flow?.step || 0,
+              teachBack: 'partial',
+              partial: true,
+            })
+          }
+          toast('Đã lưu bài! Dừng ở đây cũng là một tối học rất tốt 🌙')
+          go('home')
+        }}
+        onRecordCalmEvent={(evt) => {
+          const now = Date.now()
+          const newEvent = {
+            ts: now,
+            trigger: evt.trigger || 'manual',
+            reason: evt.reason,
+            action: evt.action,
+            resumed: true,
+            stepsAfter: 0,
+          }
+          const cStats = { ...(stats[S.activeId] || {}) }
+          const oldHistory = cStats.calmHistory || []
+          const updatedHistory = [newEvent, ...oldHistory]
+          const calmWeek = (cStats.calmWeek || 0) + 1
+          setStats({
+            ...stats,
+            [S.activeId]: {
+              ...cStats,
+              calmHistory: updatedHistory,
+              calmWeek,
+              calmLast: now,
+            },
+          })
+        }}
+      />
+    )
+  }
+  if (type === 'timer') return <TimerSheet />
+  if (type === 'breakHint') {
+    const handleLowerDifficulty = async () => {
+      closeSheet()
+      patch({ flow: { ...S.flow, stuck: 0, lowering: true } })
+      toast('AI đang hạ độ khó với số nhỏ hơn 🪜⚡')
+      try {
+        const textToUse = S.problem?.ocr || S.flow?.ocr || PROBLEM.ocr
+        const lowerRes = await aiExplain(textToUse, child, S.tone, '', true)
+        if (lowerRes && lowerRes.steps && lowerRes.steps.length > 0) {
+          patch({
+            problem: { ...lowerRes, isSample: false },
+            flow: { ...S.flow, step: 0, stuck: 0, lowering: false, stepLog: [], revealedSteps: [], stepRevealTimes: [] },
+          })
+          toast('✅ Đã hạ độ khó! Con thử làm với số dễ hơn nhé')
+        } else {
+          patch({ flow: { ...S.flow, stuck: 0, lowering: false } })
+          toast('Mạng chậm, thử lại sau nhé')
+        }
+      } catch (err) {
+        patch({ flow: { ...S.flow, stuck: 0, lowering: false } })
+        toast('Mạng chậm, thử lại sau nhé')
+      }
+    }
+
+    return (
+      <Sheet>
+        <p className="title">Con bí 2 lần rồi 🙈</p>
+        <p className="sub">
+          Nghỉ <b>3 phút</b> uống nước nhé. Trẻ học tốt hơn sau một quãng nghỉ ngắn.
+        </p>
+        <div className="card coral">
+          <span className="lbl coral">Nói với con</span>
+          <span style={{ fontSize: 14 }}>"Bài này khó thật, {ho} cũng phải nghĩ. Mình uống nước rồi vẽ lại nha."</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+          <button className="btn solid" onClick={handleLowerDifficulty} style={{ background: '#D97706', borderColor: '#B45309' }}>
+            🪜 Hạ độ khó (đổi số nhỏ hơn)
+          </button>
+          <button className="btn ghost" onClick={() => { patch({ flow: { ...S.flow, stuck: 1 } }); closeSheet() }}>
+            Nghỉ xong, quay lại bài hiện tại
+          </button>
+        </div>
+      </Sheet>
+    )
+  }
+
+  if (type === 'practice') return <PracticeSheet />
+  if (type === 'addChild') return <AddChildSheet makeStats={defaultStats} />
+  if (type === 'editChild') return <EditChildSheet />
+  if (type === 'invite' || type === 'members') {
+    return (
+      <Suspense fallback={<div className="sheet"><div className="pn" style={{ padding: 24, textAlign: 'center' }}>Đang tải...</div></div>}>
+        <FamilyMembersSheet
+          onClose={closeSheet}
+          toast={toast}
+          currentUser={session?.member || { role: 'owner', displayName: S.parent }}
+          familyName={session ? session.name : S.familyName || 'Gia đình'}
+        />
+      </Suspense>
+    )
+  }
+  if (type === 'familyClasses') {
+    return (
+      <Sheet>
+        <Suspense fallback={<div style={{ padding: 24, textAlign: 'center' }}>Đang tải...</div>}>
+          <FamilyClassSheet
+            token={getAuthToken()}
+            activeChild={child}
+            children={S.children}
+            onAddChild={(newKid) => {
+              const updated = [...(S.children || []), newKid]
+              patch({ children: updated, activeId: newKid.id })
+            }}
+            initialCode={data?.code || ''}
+            initialType={data?.joinType || 'class'}
+            onClose={closeSheet}
+          />
+        </Suspense>
+      </Sheet>
+    )
+  }
+  if (type === 'reportIssue') return <ReportIssueSheet problem={S.problem || PROBLEM} />
+  if (type === 'wipe') return <WipeSheet />
+  if (type === 'typeProblem') return <TypeProblemSheet initialMode={data?.mode} autoMic={Boolean(data?.autoMic)} />
+  if (type === 'stickerBook') return <StickerBookSheet />
+  if (type === 'pwa') return <PwaSheet />
+  if (type === 'redeem') return <RedeemRewardSheet />
+  if (type === 'aiFeedback') return <AiFeedbackSheet data={data} onClose={closeSheet} toast={toast} S={S} />
+  if (type === 'safetyPortal') return <SafetyPortalSheet onClose={closeSheet} S={S} />
+  if (type === 'themePicker') return <Sheet><ThemePickerSheet onClose={closeSheet} /></Sheet>
+  // Prompt 31A: Nghe con giảng lại
+  if (type === 'teachBack') return <Sheet><Scr.TeachBackSheet /></Sheet>
+  return null
+}
+
+function Sheet({ children }) {
+  const { closeSheet } = useContext(AppCtx)
+  return (
+    <div className="sheet" onClick={(e) => e.target === e.currentTarget && closeSheet()}>
+      <div className="pn">
+        <div className="grabber" />
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- MẸ BÌNH TĨNH ---------- */
+function CalmSheet() {
+  const { Ho = 'Bố mẹ' } = useContext(AppCtx) || {}
+  const { ho = 'bố mẹ' } = useContext(AppCtx) || {}
+  const { closeSheet, toast, S, soundOn, toggleSound } = useContext(AppCtx)
+  const [phase, setPhase] = useState('Hít vào…')
+
+  useEffect(() => {
+    soundBreathe('in')
+    const t = setInterval(() => {
+      setPhase((prev) => {
+        const next = prev === 'Hít vào…' ? 'Thở ra…' : 'Hít vào…'
+        soundBreathe(next === 'Hít vào…' ? 'in' : 'out')
+        return next
+      })
+    }, 4200)
+    return () => clearInterval(t)
+  }, [])
+
+  return (
+    <Sheet>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <p className="title" style={{ margin: 0, fontSize: 19 }}>Hít thở cùng mình 30 giây</p>
+        <button
+          className={`sound-pill-btn ${!soundOn ? 'off' : ''}`}
+          onClick={toggleSound}
+          title={soundOn ? 'Âm thanh đang bật (Bấm để tắt)' : 'Âm thanh đang tắt (Bấm để bật)'}
+          data-no-sound
+        >
+          {soundOn ? '🔊 Bật tiếng' : '🔇 Tắt tiếng'}
+        </button>
+      </div>
+      <div className="breath-wrap">
+        <div className="breath">{phase}</div>
+        <span className="sub">Hít 4 giây · thở ra 4 giây</span>
+      </div>
+      <div className="card coral">
+        <span className="lbl coral">Thay vì nói</span>
+        <span className="strike" style={{ fontSize: 15 }}>"{CALM_LINES.replace}"</span>
+      </div>
+      <div className="card mint">
+        <span className="lbl mint">Thử nói</span>
+        <span style={{ fontSize: 15 }}>"{swapMe(CALM_LINES.trySay, ho)}"</span>
+      </div>
+      <button className="btn solid" onClick={() => { closeSheet(); toast(`${Ho} làm tốt lắm 💚`) }}>
+        Mình ổn rồi
+      </button>
+    </Sheet>
+  )
+}
+
+/* ---------- HẸN GIỜ ---------- */
+function TimerSheet() {
+  const { closeSheet, toast, study, setStudy } = useContext(AppCtx)
+  const [rounds, setRounds] = useState(study?.rounds || 1)
+
+  const start = () => {
+    setStudy({ phase: 'study', left: 900, rounds, round: 1, running: true })
+    closeSheet()
+    toast('Đã bắt đầu 15 phút học ⏱')
+  }
+
+  const stop = () => {
+    setStudy(null)
+    toast('Đã hủy hẹn giờ')
+  }
+
+  return (
+    <Sheet>
+      {/* agent baocao: SheetHenGio.dc.html */}
+      <div className="bk-head">
+        <p className="title bk-h1">Hẹn giờ học</p>
+        <button type="button" className="bk-x" aria-label="Đóng" onClick={closeSheet}><X size={20} aria-hidden="true" /></button>
+      </div>
+      <p className="sub bk-lead">Học <b>15 phút</b>, nghỉ <b>5 phút</b>. Tối đa 3 vòng, đủ để não con nghỉ mà vẫn giữ nếp.</p>
+
+      {study && (
+        <div className="bk-run">
+          <span className="bk-cap">Đang chạy</span>
+          <div className="timer bk-clock">{fmtTime(study.left)}</div>
+          <span className="bk-phase">
+            {study.phase === 'study' ? <BkBook size={16} aria-hidden="true" /> : <BkCoffee size={16} aria-hidden="true" />}
+            {study.phase === 'study' ? 'Học' : 'Nghỉ'} · vòng {study.round}/{study.rounds}
+          </span>
+          <div className="btns">
+            <button className="btn solid" onClick={() => setStudy({ ...study, running: !study.running })}>
+              {study.running ? <BkPause size={18} aria-hidden="true" /> : <BkPlay size={18} aria-hidden="true" />}
+              {study.running ? 'Tạm dừng' : 'Tiếp tục'}
+            </button>
+            <button className="btn ghost" onClick={stop}>Đặt lại</button>
+          </div>
+        </div>
+      )}
+
+      {!study && (
+        <>
+          <div className="bk-rounds" role="group" aria-label="Số vòng">
+            <span className="bk-cap">Số vòng</span>
+            <div className="bk-step">
+              <button type="button" className="bk-sbtn" aria-label="Bớt 1 vòng" disabled={rounds <= 1} onClick={() => setRounds(Math.max(1, rounds - 1))}><BkMinus size={22} aria-hidden="true" /></button>
+              <b className="bk-num" aria-live="polite">{rounds}</b>
+              <button type="button" className="bk-sbtn" aria-label="Thêm 1 vòng" disabled={rounds >= 3} onClick={() => setRounds(Math.min(3, rounds + 1))}><BkPlus size={22} aria-hidden="true" /></button>
+            </div>
+          </div>
+          <button className="btn solid bk-cta" onClick={start}><BkTimer size={20} aria-hidden="true" />Bắt đầu</button>
+        </>
+      )}
+    </Sheet>
+  )
+}
+
+/* ---------- LUYỆN THÊM (AI tạo bài cùng dạng) ---------- */
+function PracticeSheet() {
+  const { ho = 'bố mẹ' } = useContext(AppCtx) || {}
+  const { S, closeSheet, toast } = useContext(AppCtx)
+  const [item, setItem] = useState(null)
+  const problem = S.problem || PROBLEM
+  const child = S.children.find((c) => c.id === S.activeId) || S.children[0]
+
+  useEffect(() => {
+    let cancelled = false
+      ; (async () => {
+        const p = await aiPractice(problem, child)
+        if (!cancelled) setItem(p || { text: 'Bố mua 4 túi kẹo, mỗi túi 6 viên. Bố cho Na 7 viên. Hỏi bố còn bao nhiêu viên kẹo?', answer: '4 × 6 = 24 · 24 − 7 = 17 viên kẹo' })
+      })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return (
+    <Sheet>
+      <p className="title">1 bài cùng dạng ✏️</p>
+      {!item ? (
+        <div className="card plum">
+          <span className="lbl plum">⏳ AI đang tạo bài…</span>
+          <span className="sub">Cùng dạng, số liệu khác, đúng sách {child.book}</span>
+        </div>
+      ) : (
+        <>
+          <div className="photo">{item.text}</div>
+          <div className="card mint">
+            <span className="lbl mint">Đáp án ({ho} đối chiếu)</span>
+            <b>{item.answer}</b>
+          </div>
+          <button className="btn solid" onClick={() => { closeSheet(); toast('Bắt đầu bài luyện thêm nhé! 💪') }}>
+            Con làm thử nhé
+          </button>
+        </>
+      )}
+    </Sheet>
+  )
+}
+
+/* ---------- MỜI BỐ CÙNG KÈM CON ---------- */
+function InviteSheet() {
+  const { S, patch, closeSheet, toast, familyName } = useContext(AppCtx)
+  const [copied, setCopied] = useState(false)
+  const url = typeof window !== 'undefined' ? window.location.origin : ''
+  const shareUrl =
+    'https://zalo.me/share?url=' + encodeURIComponent(url) +
+    '&title=' + encodeURIComponent(`Kèm Con Học, ${familyName || 'gia đình mình'} mời bạn cùng kèm con mỗi tối`)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      toast('Đã sao chép link 📋')
+    } catch (e) {
+      toast('Không copy được, bấm giữ ô link để copy nhé')
+    }
+  }
+
+  return (
+    <Sheet>
+      <p className="title">Mời bố cùng kèm con 📲</p>
+      <p className="sub">
+        App không tự nhắn tin được, bạn hãy <b>sao chép link</b> rồi gửi cho bố, hoặc bấm{' '}
+        <b>Chia sẻ qua Zalo</b> để mở sẵn khung nhắn. Bố mở link, tạo tài khoản gia đình riêng là xong.
+      </p>
+      <div className="card">
+        <span className="lbl plum">Link mời</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            className="field"
+            readOnly
+            value={url}
+            onFocus={(e) => e.target.select()}
+            style={{ flex: 1, fontSize: 13 }}
+          />
+          <button className="btn solid grow0" style={{ width: 'auto', padding: '12px 14px' }} onClick={copy}>
+            {copied ? '✓ Đã copy' : 'Sao chép'}
+          </button>
+        </div>
+        <span className="sub">Bấm vào ô link để chọn toàn bộ, rồi sao chép.</span>
+      </div>
+      <button
+        className="btn soft"
+        onClick={() => {
+          patch({ partner: true })
+          closeSheet()
+          window.open(shareUrl, '_blank')
+          toast('Đã mở Zalo, gửi link cho bố nhé 📲')
+        }}
+      >
+        Chia sẻ qua Zalo
+      </button>
+    </Sheet>
+  )
+}
+
+/* ---------- GÓP Ý GIẢNG CHƯA ĐÚNG (Feature 5) ---------- */
+const FEEDBACK_REASONS = ['OCR sai', 'Sai cách hướng dẫn', 'Quá khó với con', 'Quá dễ', 'Đáp án sai', 'Khác']
+
+function ReportIssueSheet({ problem }) {
+  const { closeSheet, toast, famId } = useContext(AppCtx)
+  const [reason, setReason] = useState('')
+  const [comment, setComment] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const submit = async () => {
+    if (!reason) {
+      toast('Chọn một lý do nhé 🚩')
+      return
+    }
+    setSaving(true)
+    const payload = {
+      familyId: famId || '',
+      problemType: (problem.type || problem.ocr || '').slice(0, 80),
+      reason,
+      comment: comment.trim(),
+    }
+    // Lưu vào D1 (teaching_feedback) — fallback localStorage nếu mạng lỗi
+    const ok = await saveTeachingFeedback(payload)
+    if (!ok) {
+      try {
+        const arr = JSON.parse(localStorage.getItem('kem-con-hoc:feedback') || '[]')
+        arr.push({ at: Date.now(), reason, comment: comment.trim(), problem: (problem.ocr || '').slice(0, 160) })
+        localStorage.setItem('kem-con-hoc:feedback', JSON.stringify(arr.slice(-50)))
+      } catch (e) { }
+    }
+    setSaving(false)
+    closeSheet()
+    toast(ok ? 'Đã gửi góp ý, cảm ơn bạn, AI sẽ được cải thiện 💛' : 'Đã lưu góp ý trên máy (mạng chậm) 💛')
+  }
+
+  return (
+    <Sheet>
+      <p className="title">Giảng chưa đúng chỗ nào? 🚩</p>
+      <p className="sub">Chọn lý do giúp mình cải thiện bài giảng cho đúng hơn.</p>
+      <div className="opt-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+        {FEEDBACK_REASONS.map((r) => (
+          <button
+            key={r}
+            className={`opt ${reason === r ? 'on' : ''}`}
+            onClick={() => { soundTap(); setReason(r) }}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <span className="lbl plum">Ghi chú thêm (tuỳ chọn)</span>
+        <textarea
+          className="field"
+          rows={3}
+          placeholder="VD: Hướng dẫn chưa đúng phương pháp SGK, gợi ý chung chung…"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+        />
+      </div>
+      <div className="btns">
+        <button className="btn ghost" onClick={closeSheet}>Bỏ qua</button>
+        <button className="btn solid" disabled={saving} onClick={submit}>
+          {saving ? 'Đang gửi…' : 'Gửi góp ý'}
+        </button>
+      </div>
+    </Sheet>
+  )
+}
+
+/* ---------- BÁO CÂU HỎI AI CHƯA HỢP (Prompt 14 Phần C) ---------- */
+function AiFeedbackSheet({ data, onClose, toast, S }) {
+  const { ho = 'bố mẹ', Ho = 'Bố mẹ' } = useContext(AppCtx) || {}
+  const [reason, setReason] = useState('too_hard')
+  const [note, setNote] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const REASONS = [
+    { id: 'too_hard', label: 'Quá khó so với tuổi của con', icon: '🧗' },
+    { id: 'leak', label: 'Lộ đáp án / nói trước kết quả', icon: '🚨' },
+    { id: 'teacher_way', label: 'Khác cách cô dạy trên lớp', icon: '👩‍🏫' },
+    { id: 'wrong', label: 'Sai kiến thức hoặc sai đề bài', icon: '❌' },
+  ]
+
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    try {
+      await sendAiFeedback({
+        familyId: S.familyId || 'anonymous',
+        sessionId: S.session?.id || 'sess_' + Date.now(),
+        promptId: data?.promptId || 'p3_explain',
+        step: data?.step || 1,
+        reason,
+        note,
+        questionText: data?.questionText || '',
+      })
+      setSubmitted(true)
+      toast(`Đã gửi phản hồi! Cảm ơn ${ho} đã giúp AI thông minh và an toàn hơn ❤️`)
+      setTimeout(() => {
+        onClose()
+      }, 1500)
+    } catch (e) {
+      toast(`Lỗi khi gửi, ${ho} thử lại sau nhé!`)
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Sheet>
+      <div style={{ padding: '0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--c-text)' }}>
+            🚩 Báo câu hỏi AI chưa hợp lý
+          </h3>
+        </div>
+
+        {submitted ? (
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>✅</div>
+            <p style={{ fontWeight: 700, fontSize: 14.5, color: '#047857' }}>
+              Cảm ơn {ho}! Đóng góp của {ho} đã được ghi nhận vào hệ thống An toàn AI.
+            </p>
+          </div>
+        ) : (
+          <div>
+            {data?.questionText && (
+              <div style={{ background: 'var(--c-surface-sunken)', padding: 10, borderRadius: 10, fontSize: 13, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 14 }}>
+                "{data.questionText}"
+              </div>
+            )}
+
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--c-text-2)', marginBottom: 8 }}>
+              {Ho} thấy câu này chưa phù hợp ở điểm nào?
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+              {REASONS.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  className={`btn ${reason === r.id ? 'solid' : 'soft'}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '9px 12px',
+                    textAlign: 'left',
+                    fontSize: 13,
+                    fontWeight: reason === r.id ? 800 : 600,
+                    border: reason === r.id ? 'none' : '1px solid var(--c-line)',
+                  }}
+                  onClick={() => setReason(r.id)}
+                >
+                  <span style={{ fontSize: 16 }}>{r.icon}</span>
+                  <span>{r.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--c-text-2)', marginBottom: 4 }}>
+                Ghi chú thêm (không bắt buộc):
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ví dụ: Bé nhà mình lớp 3 chưa học phép nhân 2 chữ số..."
+                rows={2}
+                style={{
+                  width: '100%',
+                  padding: 10,
+                  borderRadius: 10,
+                  border: '1.5px solid var(--c-line)',
+                  fontSize: 13,
+                  fontFamily: 'inherit',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn soft" style={{ flex: 1 }} onClick={onClose} disabled={submitting}>
+                Hủy
+              </button>
+              <button
+                className="btn solid primary"
+                style={{ flex: 2, fontWeight: 800 }}
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? 'Đang gửi...' : 'Gửi phản hồi'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Sheet>
+  )
+}
+
+/* ---------- TRANG MINH BẠCH & AN TOÀN AI ---------- */
+function SafetyPortalSheet({ onClose, S }) {
+  const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState(null)
+
+  useEffect(() => {
+    getSafetySummary()
+      .then((res) => {
+        setSummary(res)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  return (
+    <Sheet>
+      <div style={{ padding: '0 4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 22 }}>🛡️</span>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--c-text)' }}>
+              AI An toàn & Minh bạch
+            </h3>
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 30 }}>⏳ Đang tải số liệu an toàn...</div>
+        ) : (
+          <div>
+            {/* KPI Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}>
+              <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 12, padding: '12px' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>
+                  Tỷ lệ an toàn
+                </div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#065F46', marginTop: 2 }}>
+                  {summary?.safe_rate_percent || 100}%
+                </div>
+                <div style={{ fontSize: 11, color: '#047857', marginTop: 2 }}>
+                  Không bao giờ lộ đáp án
+                </div>
+              </div>
+              <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: '12px' }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#1D4ED8', textTransform: 'uppercase' }}>
+                  Tự sửa bài thành công
+                </div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#1E40AF', marginTop: 2 }}>
+                  {summary?.work_checks?.self_fixed || 0} bài
+                </div>
+                <div style={{ fontSize: 11, color: '#1D4ED8', marginTop: 2 }}>
+                  Bé tự tìm ra bước sai
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Lớp Bảo Vệ */}
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--c-text)', textTransform: 'uppercase', marginBottom: 8 }}>
+              4 lớp cam kết sư phạm và an toàn:
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
+              {(summary?.four_layer_safety || []).map((l) => (
+                <div key={l.layer} style={{ display: 'flex', gap: 10, background: 'var(--c-surface-sunken)', padding: '10px 12px', borderRadius: 10 }}>
+                  <span style={{ fontSize: 16 }}>✅</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text)' }}>
+                      Lớp {l.layer}: {l.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--c-text-2)', marginTop: 2 }}>
+                      {l.desc}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button className="btn solid primary" style={{ width: '100%', fontWeight: 800 }} onClick={onClose}>
+              Đã hiểu & Tiếp tục đồng hành cùng con
+            </button>
+          </div>
+        )}
+      </div>
+    </Sheet>
+  )
+}
+
+/* ---------- THÊM CON / SỬA HỒ SƠ CON: xem ChildSheets.jsx (gói 38) ---------- */
+
+/* ---------- XÓA DỮ LIỆU (Đợt 15 · 6.4: nút nguy hiểm, gõ tên gia đình để xác nhận) ---------- */
+function WipeSheet() {
+  const { closeSheet, wipe, familyName } = useContext(AppCtx)
+  const expected = String(familyName || '').trim()
+  const [typed, setTyped] = useState('')
+  const matched = Boolean(expected) && typed.trim().toLowerCase() === expected.toLowerCase()
+  return (
+    <Sheet>
+      <p className="title">Xoá toàn bộ dữ liệu?</p>
+      <p className="sub">
+        Hồ sơ con, lịch sử, sticker, báo cáo… <b>tất cả sẽ mất vĩnh viễn</b> (cả bản đám mây). Không thể khôi phục.
+      </p>
+      <label htmlFor="wipe-confirm-name" style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text)' }}>
+        Gõ đúng tên gia đình <b>{expected}</b> để xác nhận
+      </label>
+      <input
+        id="wipe-confirm-name"
+        className="field"
+        autoComplete="off"
+        placeholder={expected}
+        value={typed}
+        onChange={(e) => setTyped(e.target.value)}
+      />
+      <div className="btns">
+        <button type="button" className="btn ghost" onClick={closeSheet}>Giữ lại</button>
+        <button type="button" className="btn danger solid" disabled={!matched} onClick={() => wipe({ confirmed: true })}>
+          Xoá vĩnh viễn
+        </button>
+      </div>
+    </Sheet>
+  )
+}
+
+/* ---------- GÕ ĐỀ HOẶC ĐỌC ĐỀ BẰNG GIỌNG NÓI ---------- */
+function TypeProblemSheet({ initialMode, autoMic = false }) {
+  const { S, patch, go, closeSheet, toast, session } = useContext(AppCtx)
+  const isTrial = Boolean(session?.isTrial)
+  const [text, setText] = useState(isTrial ? PRELOADED_TRIAL_LESSONS[0].de_bai : '')
+  // Prompt 29B.3: ô để trống, không tự lấy đề mẫu có tên "Na" khi người dùng chưa gõ gì
+  const save = () => {
+    if (!text.trim()) {
+      toast('Gõ hoặc đọc đề bài của con trước nhé')
+      return
+    }
+    patch({
+      studySource: 'parent',
+      assignmentId: null,
+      assignmentItemId: null,
+      // Gói 33 · B4: môn mẹ đã bấm (chip đề mẫu) đi theo đề; đề tự gõ thì để màn đọc đề tự đoán
+      flow: { ...S.flow, ocr: text.trim(), subject: (PRELOADED_TRIAL_LESSONS.find((l) => l.de_bai === text.trim())?.subject) || null, step: 0, stuck: 0, peeks: 0, stepLog: [], revealedSteps: [], stepRevealTimes: [], startedAt: null },
+      problem: {
+        ...PROBLEM,
+        // Prompt 31B1: không mang nhãn/tóm tắt của đề giả 3 hộp bút sang đề vừa gõ
+        id: 'typed_' + Date.now(),
+        // Prompt 32 mục 2: đề mới không kế thừa gì của bài mẫu 3 hộp bút
+        type: '',
+        dang_bai: '',
+        summary: '',
+        warning: '',
+        method: '',
+        answer: '',
+        answerLine: '',
+        steps: [],
+        diagram: null,
+        brotherProblem: null,
+        teachBack: '',
+        fiveMinGame: '',
+        ocr: text.trim(),
+        isTeacherAssigned: false,
+        teacherName: null,
+        teacherMethodNote: null,
+        teacherAnswer: null,
+        assignmentId: null,
+      }
+    })
+    closeSheet()
+    toast('Đã nhận đề, AI đang đọc…')
+    go('analyze')
+  }
+
+  const handleVoiceInput = (speechText) => {
+    soundSuccess()
+    setText((prev) => (prev ? prev + ' ' + speechText : speechText))
+    toast('🎙️ Đã nhận diện: "' + speechText + '"')
+  }
+
+  return (
+    <Sheet>
+      {/* [agent hoc] Bảng Gõ đề theo GoDe.dc.html */}
+      <div className="hk-gode">
+      <div className="hk-gode-top">
+        <h3>Đề bài hôm nay</h3>
+        <button type="button" className="hk-x" onClick={closeSheet} aria-label="Đóng"><X size={20} strokeWidth={2.4} aria-hidden="true" /></button>
+      </div>
+
+      {/* 1. Ô nhập lên đầu */}
+      <textarea
+        className="ta big hk-ta"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Gõ hoặc dán đề bài của con… (hoặc bấm một đề mẫu bên dưới)"
+        aria-label="Đề bài"
+        data-testid="type-problem-input"
+      />
+
+      {/* 2. Đề mẫu thành 3 chip Toán, Tiếng Việt, Tiếng Anh */}
+      <span className="hk-samples-lb">Thử đề mẫu:</span>
+      <div className="hk-samples">
+        <button
+          type="button"
+          className={`k-pill ${text === PRELOADED_TRIAL_LESSONS[0].de_bai ? 'k-pill-on active' : ''}`}
+          onClick={() => {
+            setActiveTrialLesson(PRELOADED_TRIAL_LESSONS[0].id)
+            setText(PRELOADED_TRIAL_LESSONS[0].de_bai)
+          }}
+        >
+          Toán
+        </button>
+        <button
+          type="button"
+          className={`k-pill ${text === PRELOADED_TRIAL_LESSONS[1].de_bai ? 'k-pill-on active' : ''}`}
+          onClick={() => {
+            setActiveTrialLesson(PRELOADED_TRIAL_LESSONS[1].id)
+            setText(PRELOADED_TRIAL_LESSONS[1].de_bai)
+          }}
+        >
+          Tiếng Việt
+        </button>
+        <button
+          type="button"
+          className={`k-pill ${text === PRELOADED_TRIAL_LESSONS[2].de_bai ? 'k-pill-on active' : ''}`}
+          onClick={() => {
+            setActiveTrialLesson(PRELOADED_TRIAL_LESSONS[2].id)
+            setText(PRELOADED_TRIAL_LESSONS[2].de_bai)
+          }}
+        >
+          Tiếng Anh
+        </button>
+      </div>
+
+      {/* 3. Nút Đọc cho Gấu nghe */}
+      <div className="hk-voice">
+        <VoiceInputBtn onResult={handleVoiceInput} placeholder="Đọc cho Gấu nghe" autoStart={autoMic} />
+      </div>
+
+      {/* 4. Nút dính đáy Lớn 56px */}
+      <div className="hk-gode-foot">
+        <button
+          type="button"
+          className="btn-km btn-km-l btn-km-primary"
+          onClick={save}
+          data-testid="btn-submit-type-problem"
+        >
+          <span className="btn-km-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+          </span>
+          <span className="btn-km-text">Gấu đọc đề này</span>
+          <span className="btn-km-arrow" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+          </span>
+        </button>
+      </div>
+      </div>
+    </Sheet>
+  )
+}
+
+/* ---------- SỔ DÁN STICKER CỦA BÉ ---------- */
+function StickerBookSheet() {
+  const { Ho = 'Bố mẹ' } = useContext(AppCtx) || {}
+  const { S, openSheet, closeSheet, boom } = useContext(AppCtx)
+  const child = S.children.find((c) => c.id === S.activeId) || S.children[0]
+  const curStats = S.stats[child.id] || {}
+  const list = (curStats.stickersList || []).filter((x) => !x.sample)
+  const [selected, setSelected] = useState(null)
+
+  const isUnlocked = (stk) => list.some((x) => x.id === stk.id || x.e === stk.e || x.name === stk.n)
+  // Prompt 32 mục 8: số loại đã sưu tập = số ô sáng trong sổ (trước đây đếm cả sticker không khớp ô nào)
+  const distinct = AVAILABLE_STICKERS.filter(isUnlocked).length
+  const getRecord = (stk) => list.find((x) => x.id === stk.id || x.e === stk.e || x.name === stk.n)
+
+  const clickSticker = (stk) => {
+    const rec = getRecord(stk)
+    if (rec) {
+      soundSuccess()
+      boom()
+      setSelected({ ...stk, ...rec })
+    } else {
+      soundPop(450)
+      setSelected(stk)
+    }
+  }
+
+  return (
+    <Sheet>
+      {/* agent baocao: SheetSticker.dc.html. Hình huy hiệu (fa) là nội dung, giữ nguyên */}
+      <div className="bk-stk-head">
+        <p className="title bk-h1"><BkBook size={24} aria-hidden="true" className="bk-acc" /> Sổ dán sticker của {child.name}</p>
+        <span className="sub">
+          Đã sưu tập <b>{distinct}/{AVAILABLE_STICKERS.length}</b> loại huy hiệu · tổng <b>{list.length}</b> sticker
+          {curStats.rewardCount > 0 && (
+            <span className="bk-stk-rw">
+              <BkTrophy size={15} aria-hidden="true" /> Đã hoàn thành {curStats.rewardCount} chặng đổi quà cùng bố mẹ!
+            </span>
+          )}
+        </span>
+      </div>
+
+      {/* Thanh tiến độ tới quà (Prompt 23 P3) */}
+      <div className="bk-prog">
+        <div className="bk-prog-h">
+          <b>Tiến độ đổi quà chặng này</b>
+          <span>{Math.min(10, curStats.stickers || list.length || 0)}/10 sticker</span>
+        </div>
+        <div className="bk-bar">
+          <div style={{ width: `${Math.min(100, (curStats.stickers || list.length || 0) * 10)}%` }} />
+        </div>
+      </div>
+
+      {/* 10 Stickers milestone celebration card */}
+      {(curStats.stickers >= 10 || list.length >= 10) && (
+        <div className="bk-gift pop">
+          <div className="bk-gift-art" aria-hidden="true"><span><BkGift size={28} /></span><span><BkTrophy size={28} /></span></div>
+          <b>ĐỦ 10 HUY HIỆU: ĐỔI QUÀ CHO BÉ!</b>
+          <div className="bk-gift-tx">
+            Chúc mừng {child.name} đã tích đủ 10 sticker nỗ lực! {Ho} bấm để mở phiếu đổi quà và bắt đầu chặng mới nhé.
+          </div>
+          <button className="btn solid bk-cta" onClick={() => openSheet('redeem')}>
+            <BkGift size={20} aria-hidden="true" /> Mở phiếu đổi quà cho con
+          </button>
+        </div>
+      )}
+
+      {/* Selected sticker detail card */}
+      {selected && (
+        <div className="bk-sel pop">
+          <div className="bk-sel-ic" style={{ color: selected.color }}>
+            <i className={selected.fa || 'fa-solid fa-award'} />
+          </div>
+          <b>{selected.n}</b>
+          <span className="bk-sel-tr">Phẩm chất: {selected.trait || 'Kiên nhẫn'}</span>
+          <div className="bk-sel-d">{selected.desc}</div>
+          {isUnlocked(selected) ? (
+            <span className="bk-pill ok"><BkCheck size={14} aria-hidden="true" /> Đã dán vào sổ ({selected.when || 'Hôm nay'})</span>
+          ) : (
+            <span className="bk-pill"><BkLock size={14} aria-hidden="true" /> Chưa mở khóa, hoàn thành thêm bài học để nhận nhé!</span>
+          )}
+        </div>
+      )}
+
+      {/* Lưới 12 huy hiệu (hình huy hiệu giữ nguyên, khung theo bộ giao diện) */}
+      <div className="bk-grid">
+        {AVAILABLE_STICKERS.map((stk) => {
+          const unlocked = isUnlocked(stk)
+          const isCurrent = selected && selected.id === stk.id
+          const cnt = list.filter((x) => x.id === stk.id || x.e === stk.e || x.name === stk.n).length
+          return (
+            <button
+              key={stk.id}
+              type="button"
+              className={`bk-tile ${unlocked ? 'on' : ''} ${isCurrent ? 'cur' : ''}`}
+              onClick={() => clickSticker(stk)}
+              aria-pressed={Boolean(isCurrent)}
+            >
+              <span className="bk-tile-ic" style={unlocked ? { color: stk.color } : undefined}>
+                <i className={stk.fa || 'fa-solid fa-award'} />
+              </span>
+              <b>{stk.trait || stk.n.split(' ')[0]}</b>
+              <small>{!unlocked ? 'Chưa mở' : cnt > 1 ? `Đã có ×${cnt}` : 'Đã có'}</small>
+            </button>
+          )
+        })}
+      </div>
+
+      {curStats.rewardHistory && curStats.rewardHistory.length > 0 && (
+        <div className="bk-hist">
+          <b className="bk-hist-h">
+            <BkTrophy size={16} aria-hidden="true" /> Nhật ký đổi quà của con ({curStats.rewardHistory.length} chặng):
+          </b>
+          <div className="bk-hist-list">
+            {curStats.rewardHistory.map((rh, idx) => (
+              <div key={idx} className="bk-hist-row">
+                <span><b>Chặng {rh.round || idx + 1}:</b> {rh.title}</span>
+                <small>{rh.when}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {curStats.stickers < 10 && (
+        <button type="button" className="bk-link" onClick={() => openSheet('redeem')}>
+          <BkGift size={16} aria-hidden="true" /> Hoặc mở phiếu đổi quà sớm cho {child.name} (nếu có thưởng đặc biệt)
+        </button>
+      )}
+
+      <button className="btn ghost bk-close" onClick={closeSheet}>
+        Đóng sổ tay
+      </button>
+    </Sheet>
+  )
+}
+
+/* ---------- PHIẾU ĐỔI QUÀ 10 STICKER ---------- */
+function RedeemRewardSheet() {
+  const { ho = 'bố mẹ', Ho = 'Bố mẹ' } = useContext(AppCtx) || {}
+  const { S, setStats, closeSheet, toast, boom } = useContext(AppCtx)
+  const child = S.children.find((c) => c.id === S.activeId) || S.children[0]
+  const curStats = S.stats[child.id] || {}
+  const [selectedReward, setSelectedReward] = useState('🍦 Đi ăn que kem yêu thích cùng bố mẹ')
+  const [customReward, setCustomReward] = useState('')
+
+  const REWARD_OPTIONS = [
+    '🍦 Đi ăn que kem yêu thích cùng bố mẹ',
+    '📚 1 cuốn truyện tranh / sách mới ở nhà sách',
+    '🎡 1 buổi đi khu vui chơi cuối tuần',
+    '🍕 1 bữa pizza / gà rán liên hoan gia đình',
+    '🎨 1 bộ màu vẽ / đồ chơi nhỏ con thích',
+  ]
+
+  const confirmRedeem = () => {
+    const finalReward = customReward.trim() || selectedReward
+    const round = (curStats.rewardCount || 0) + 1
+    const newHistory = [
+      ...(curStats.rewardHistory || []),
+      { title: finalReward, when: 'Hôm nay', round },
+    ]
+    const generalHistory = [
+      ...(curStats.history || []),
+      { txt: `🎁 Đổi quà Chặng ${round}: ${finalReward}`, when: 'Hôm nay' },
+    ]
+
+    setStats({
+      stickers: 0, // Reset counter to 0 for next 10 stickers
+      stickersList: [], // Reset sổ sticker cho chặng mới
+      rewardCount: round,
+      rewardHistory: newHistory,
+      history: generalHistory,
+    })
+
+    // Đợt 19 Chặng 1: Lưu bảng reward_events
+    recordRewardEvent({
+      child_id: child.id,
+      round,
+      title: finalReward,
+      sticker_count: 10,
+      created_at: new Date().toISOString(),
+      timestamp: Date.now(),
+    }).catch(() => {})
+
+    soundFanfare()
+    boom()
+    closeSheet()
+    toast(`🎉 Đã đổi quà thành công: ${finalReward}! Bắt đầu chặng ${round + 1} mới 🚀`)
+  }
+
+  return (
+    <Sheet>
+      <div style={{ textAlign: 'center', marginBottom: 12 }}>
+        <div style={{ fontSize: 52, animation: 'float 2s ease-in-out infinite' }}>🏆 🎁 ✨</div>
+        <p className="title" style={{ margin: '4px 0 2px', color: '#B45309' }}>
+          ĐỦ 10 HUY HIỆU: ĐỔI QUÀ CHO {child.name.toUpperCase()}!
+        </p>
+        <span className="sub">
+          Chúc mừng {child.name} đã hoàn thành xuất sắc 10 buổi học nỗ lực. {Ho} và con cùng chọn phần quà nhé:
+        </span>
+      </div>
+
+      <div className="card sun" style={{ border: '2px solid #F59E0B', background: '#FFFBEB', padding: '12px' }}>
+        <span className="lbl sun" style={{ fontWeight: 700 }}>Chọn phần quà thực tế:</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, margin: '8px 0' }}>
+          {REWARD_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => { soundPop(550); setSelectedReward(opt); setCustomReward('') }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                textAlign: 'left',
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: selectedReward === opt && !customReward ? '2px solid #D97706' : '1px solid #FDE68A',
+                background: selectedReward === opt && !customReward ? '#FEF3C7' : '#FFFFFF',
+                fontWeight: selectedReward === opt && !customReward ? 700 : 500,
+                fontSize: 13.5,
+                color: '#78350F',
+                cursor: 'pointer',
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 8 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: '#92400E' }}>Hoặc {ho} tự nhập phần quà riêng:</span>
+          <input
+            className="field"
+            style={{ marginTop: 4, fontSize: 13.5 }}
+            placeholder="Ví dụ: 1 chuyến xem phim rạp, 1 buổi bơi..."
+            value={customReward}
+            onChange={(e) => setCustomReward(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <button
+        className="btn solid"
+        style={{ width: '100%', padding: '14px', fontSize: 15, fontWeight: 700, marginTop: 12, background: 'linear-gradient(135deg, #D97706, #B45309)', boxShadow: '0 4px 14px rgba(217,119,6,0.35)' }}
+        onClick={confirmRedeem}
+      >
+        🎁 {Ho} xác nhận đổi quà & Đặt lại sổ mới ➔
+      </button>
+    </Sheet>
+  )
+}
+
+/* ---------- CÀI ĐẶT APP RA MÀN HÌNH CHÍNH (PWA) ---------- */
+function PwaSheet() {
+  const { closeSheet, toast } = useContext(AppCtx)
+  const isIos = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent)
+
+  return (
+    <Sheet>
+      <div style={{ textAlign: 'center', marginBottom: 10 }}>
+        <div style={{ fontSize: 44, marginBottom: 4 }}>🌸 📲</div>
+        <p className="title" style={{ margin: 0 }}>Cài Kèm Con Học vào điện thoại</p>
+        <span className="sub">Mở app toàn màn hình mượt mà, không bị vướng thanh địa chỉ web</span>
+      </div>
+
+      {isIos ? (
+        <div className="card sky" style={{ textAlign: 'left', lineHeight: 1.6 }}>
+          <b style={{ color: 'var(--plum-deep)' }}>📱 Dành cho iPhone / iPad (Safari):</b>
+          <div style={{ fontSize: 13.5, marginTop: 6 }}>
+            1. Bấm nút <b>Chia sẻ</b> <span style={{ fontSize: 16 }}>⎋</span> ở cạnh dưới thanh Safari.<br />
+            2. Cuộn xuống và chọn <b>"Thêm vào MH chính"</b> (Add to Home Screen) <span style={{ fontSize: 16 }}>⊞</span>.<br />
+            3. Bấm <b>Thêm</b> (Add) ở góc trên bên phải là xong!
+          </div>
+        </div>
+      ) : (
+        <div className="card mint" style={{ textAlign: 'left', lineHeight: 1.6 }}>
+          <b style={{ color: 'var(--plum-deep)' }}>📱 Dành cho Android (Chrome):</b>
+          <div style={{ fontSize: 13.5, marginTop: 6 }}>
+            1. Bấm dấu <b>3 chấm ⋮</b> ở góc trên bên phải trình duyệt Chrome.<br />
+            2. Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào Màn hình chính"</b>.<br />
+            3. Xác nhận để app xuất hiện ngay cạnh các ứng dụng thường dùng!
+          </div>
+        </div>
+      )}
+
+      <button className="btn solid" style={{ width: '100%', marginTop: 10 }} onClick={() => { closeSheet(); toast('Chúc gia đình mình có những buổi học vui vẻ 💚') }}>
+        Đã hiểu, đóng hướng dẫn
+      </button>
+    </Sheet>
+  )
+}

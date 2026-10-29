@@ -1,0 +1,930 @@
+/* ============================================================
+   KHUNG ADMIN KIỂU OUTLOOK (29/10/2026, theo mẫu dashboard v6)
+   - Ảnh nền phủ toàn trang, mọi bề mặt là kính mờ trong suốt (blur + trắng ~70%)
+   - Mỗi thẻ là một tấm kính riêng, giữa các thẻ thấy ảnh nền
+   - Tiêu đề lớn chữ trắng đặt thẳng trên ảnh, có lớp phủ tối ở đầu trang
+   - Màu nhấn xanh ngọc (#13A89E / #0B7C74), chữ Be Vietnam Pro
+   Biến màu đặt ở html[data-admin-wall] (Admin.jsx gắn khi mở admin, gỡ khi rời)
+   để cả hộp thoại, ngăn kéo (render ra body) cũng cùng một kiểu.
+   Cổng giáo viên không có thuộc tính này nên không đổi.
+   ============================================================ */
+
+html[data-admin-wall] {
+  --s-font-head: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --s-font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --s-text: #14262B;
+  --s-text-2: #33484D;
+  --s-accent: #0B7C74;
+  --s-on-accent: #FFFFFF;
+  --s-accent-deep: #08605A;
+  --s-accent-tint: #E3F6F3;
+  --s-accent-ink: #0A6A63;
+  --s-line: #D6E4E1;
+  --s-bg: #F3F8F7;
+  --s-surface: #FFFFFF;
+  --s-warn: #9A4A00;
+  --s-warn-bg: #FFF1E6;
+  --s-warn-border: #F7C9A3;
+  --s-radius-card: 18px;
+  --s-radius-input: 12px;
+  --s-shadow-card: 0 10px 36px rgba(20, 45, 50, 0.14);
+  --s-shadow-btn: 0 1px 2px rgba(8, 96, 90, 0.3);
+
+  /* Kính mờ */
+  --kw-glass: rgba(255, 255, 255, 0.7);
+  --kw-glass-soft: rgba(255, 255, 255, 0.6);
+  --kw-glass-strong: rgba(255, 255, 255, 0.86);
+  --kw-glass-inner: rgba(255, 255, 255, 0.62);
+  --kw-glass-line: rgba(255, 255, 255, 0.72);
+  --kw-blur: blur(24px) saturate(1.5);
+  --kw-shadow: 0 10px 40px rgba(20, 45, 50, 0.16);
+  --kw-head: #FFFFFF;
+  --kw-head-2: rgba(255, 255, 255, 0.95);
+  --kw-head-shadow: 0 2px 14px rgba(5, 35, 45, 0.6), 0 1px 3px rgba(5, 35, 45, 0.55);
+  --kw-veil: linear-gradient(180deg, rgba(10, 40, 50, 0.42) 0, rgba(10, 40, 50, 0.16) 300px, rgba(10, 40, 50, 0.06) 55%, rgba(10, 40, 50, 0.2) 100%);
+  --kw-fill: url(/admin/wallpaper-garden.jpg) center / cover no-repeat fixed;
+  --kw-fill-color: #6F8A6A;
+}
+html[data-admin-wall='light'] {
+  --kw-fill: linear-gradient(135deg, #E6F7F4 0%, #EAF3FC 55%, #FFF0EC 100%) fixed;
+  --kw-fill-color: #EAF3F1;
+  --kw-head: #14262B;
+  --kw-head-2: #34494E;
+  --kw-head-shadow: none;
+  --kw-veil: none;
+  --kw-glass: rgba(255, 255, 255, 0.72);
+}
+html[data-admin-wall='beige'] {
+  --kw-fill: radial-gradient(900px 500px at 15% 10%, #F3DFC0, transparent 60%), radial-gradient(800px 500px at 90% 90%, #F2DCCB, transparent 60%), #F6EBDD;
+  --kw-fill-color: #F6EBDD;
+  --kw-head: #2E2116;
+  --kw-head-2: #57422F;
+  --kw-head-shadow: none;
+  --kw-veil: none;
+  --kw-glass: rgba(255, 255, 255, 0.68);
+}
+html[data-admin-wall='dark'] {
+  --kw-fill: radial-gradient(900px 500px at 80% 0%, #4B3A6B, transparent 60%), radial-gradient(800px 600px at 0% 100%, #5A3B3B, transparent 60%), #1D1B2E;
+  --kw-fill-color: #1D1B2E;
+  --kw-head: #F6F1EA;
+  --kw-head-2: #E4DCEB;
+  --kw-head-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+  --kw-veil: none;
+  /* Trên nền tối kính phải đặc hơn để chữ phụ vẫn đạt 4,5:1 */
+  --kw-glass: rgba(255, 255, 255, 0.84);
+  --kw-glass-soft: rgba(255, 255, 255, 0.8);
+  --kw-glass-strong: rgba(255, 255, 255, 0.92);
+  --kw-glass-inner: rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Nền ---------- */
+.kadm-root[data-admin-wall] {
+  position: relative;
+  background: var(--kw-fill);
+  background-color: var(--kw-fill-color);
+  min-height: 100vh;
+  color: var(--s-text);
+  font-family: var(--s-font-body);
+}
+.kadm-root[data-admin-wall]::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--kw-veil);
+  pointer-events: none;
+  z-index: 0;
+}
+.kadm-root[data-admin-wall] .kadm-shell {
+  position: relative;
+  z-index: 1;
+  gap: 16px;
+  padding: 16px;
+  background: transparent;
+}
+
+/* ---------- Thanh bên kính ---------- */
+.kadm-root[data-admin-wall] .kadm-side {
+  height: calc(100vh - 32px);
+  top: 16px;
+  border-radius: 22px;
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: var(--kw-shadow);
+  padding: 18px 12px 12px;
+}
+.kadm-root[data-admin-wall] .kadm-brand { padding: 0 8px 14px; gap: 10px; }
+.kadm-root[data-admin-wall] .kadm-logo-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #FFB199, #FF7A6B);
+  flex-shrink: 0;
+}
+.kadm-root[data-admin-wall] .kadm-brand-text b { font-family: var(--s-font-head); font-size: 15px; font-weight: 700; color: #14262B; }
+.kadm-root[data-admin-wall] .kadm-brand-text small { color: #3F555A; font-size: 12px; }
+.kadm-root[data-admin-wall] .kadm-sep-text {
+  color: #3F555A;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.kadm-root[data-admin-wall] .kadm-side .kadm-nv {
+  color: #22383D;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  min-height: 42px;
+}
+.kadm-root[data-admin-wall] .kadm-side .kadm-nv:hover { background: rgba(255, 255, 255, 0.7); color: #14262B; }
+.kadm-root[data-admin-wall] .kadm-side .kadm-nv.is-on {
+  background: #0B7C74;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(11, 124, 116, 0.3);
+}
+.kadm-root[data-admin-wall] .kadm-side .kadm-nv-svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #2F454B;
+}
+.kadm-root[data-admin-wall] .kadm-side .kadm-nv.is-on .kadm-nv-svg { color: #FFFFFF; }
+.kadm-root[data-admin-wall] .kadm-tab-cnt { color: #3F555A; font-weight: 600; font-size: 12px; }
+.kadm-root[data-admin-wall] .kadm-nv.is-on .kadm-tab-cnt { color: #E3F6F3; }
+.kadm-root[data-admin-wall] .kadm-badge { background: #D64A3A; }
+.kadm-root[data-admin-wall] .kadm-side-foot { border-top: 1px solid rgba(20, 45, 50, 0.1); }
+.kadm-root[data-admin-wall] .kadm-health { color: #22383D; }
+.kadm-root[data-admin-wall] .kadm-collapse-btn {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(20, 45, 50, 0.12);
+  color: #22383D;
+}
+
+/* ---------- Đầu trang kính ---------- */
+.kadm-root[data-admin-wall] .kadm-hd {
+  top: 16px;
+  height: 64px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: var(--kw-shadow);
+}
+/* Tên trang đã hiện to bên dưới, không lặp lại trên thanh đầu */
+.kadm-root[data-admin-wall] .kadm-crumb { display: none; }
+.kadm-root[data-admin-wall] .kadm-search {
+  flex: 1;
+  max-width: 460px;
+  min-height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #3F555A;
+}
+.kadm-root[data-admin-wall] .kadm-search input { color: #14262B; }
+.kadm-root[data-admin-wall] .kadm-search input::placeholder { color: #4A5F64; opacity: 1; }
+.kadm-root[data-admin-wall] .kadm-search-kbd {
+  border: 1px solid rgba(20, 45, 50, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  color: #33484D;
+  border-radius: 6px;
+}
+.kadm-root[data-admin-wall] .kadm-demo-chip {
+  min-height: 40px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #14262B;
+}
+.kadm-root[data-admin-wall] .kadm-clock { color: #22383D; font-weight: 600; white-space: nowrap; }
+.kadm-root[data-admin-wall] .kadm-bell,
+.kadm-root[data-admin-wall] .kadm-menu-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #22383D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.kadm-root[data-admin-wall] .kadm-bell em { background: #D64A3A; color: #FFFFFF; border: 2px solid #FFFFFF; }
+.kadm-root[data-admin-wall] .kadm-menu-btn { display: none; }
+.kadm-root[data-admin-wall] .kadm-hd .kadm-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #0B7C74;
+  color: #FFFFFF;
+  border: none;
+  font-weight: 800;
+}
+.kadm-avatar-static { background: #0B7C74 !important; color: #FFFFFF !important; }
+.kadm-pop-item svg,
+.kadm-pop-static svg,
+.kadm-search svg { flex-shrink: 0; }
+.kadm-root[data-admin-wall] .kadm-pop {
+  background: var(--kw-glass-strong);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: var(--kw-shadow);
+  border-radius: 16px;
+}
+.kadm-root[data-admin-wall] .kadm-pop-item { color: #14262B; min-height: 44px; }
+.kadm-root[data-admin-wall] .kadm-pop-item:hover { background: rgba(11, 124, 116, 0.08); }
+.kadm-root[data-admin-wall] .kadm-pop-item svg { color: #0B7C74; }
+.kadm-root[data-admin-wall] .kadm-pop-danger,
+.kadm-root[data-admin-wall] .kadm-pop-danger svg { color: #B42318; }
+
+/* Chọn hình nền: 4 ô nhỏ */
+.kadm-wallpick {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+.kadm-wallpick-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 2px solid rgba(20, 45, 50, 0.12);
+  cursor: pointer;
+  padding: 0;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.kadm-wallpick-btn::after { content: ''; position: absolute; inset: -8px -3px; }
+.kadm-wallpick-btn.is-on { border-color: #0B7C74; box-shadow: 0 0 0 2px #FFFFFF inset; }
+.kadm-wallpick-btn:focus-visible { outline: 2px solid #0B7C74; outline-offset: 2px; }
+.kadm-wall-garden { background-image: url(/admin/wallpaper-garden.jpg); }
+.kadm-wall-light { background: linear-gradient(135deg, #E6F7F4, #EAF3FC 55%, #FFF0EC); }
+.kadm-wall-beige { background: linear-gradient(135deg, #F3DFC0, #F6EBDD); }
+.kadm-wall-dark { background: linear-gradient(135deg, #4B3A6B, #1D1B2E); }
+/* Bản gọn trong menu tài khoản (điện thoại) */
+.kadm-wallpick-menu { display: none; }
+.kadm-wallpick-menu .kadm-wallpick { background: transparent; border: none; padding: 0; gap: 10px; }
+.kadm-wallpick-menu .kadm-wallpick-btn { width: 40px; height: 40px; border-radius: 10px; }
+.kadm-wallpick-menu-label { font-size: 12px; font-weight: 700; color: #33484D; margin-bottom: 8px; }
+
+/* ---------- Tiêu đề lớn thẳng trên ảnh ---------- */
+.kadm-root[data-admin-wall] .kadm-content { padding: 0 4px 40px; }
+.kadm-hero { display: none; }
+.kadm-root[data-admin-wall] .kadm-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 30px 4px 16px;
+  color: var(--kw-head);
+  text-shadow: var(--kw-head-shadow);
+}
+.kadm-root[data-admin-wall] .kadm-hero .kadm-hero-eyebrow {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kw-head-2) !important;
+}
+.kadm-root[data-admin-wall] .kadm-hero .kadm-hero-title {
+  margin: 0;
+  font-family: var(--s-font-head);
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--kw-head) !important;
+  text-shadow: var(--kw-head-shadow);
+  overflow-wrap: anywhere;
+}
+
+/* Khung chứa trang: trong suốt, mỗi thẻ là một tấm kính riêng */
+.kadm-root[data-admin-wall] .kadm-panel { min-width: 0; background: transparent; }
+
+/* Đầu trang của từng trang (PageHeader đầu tiên): nằm trên ảnh, ngay dưới tiêu đề lớn */
+.kadm-root[data-admin-wall] .kadm-panel > * > .sk-page-header:first-child,
+.kadm-root[data-admin-wall] .kadm-panel > .sk-page-header:first-child,
+.kadm-root[data-admin-wall] .kadm-panel > * > * > .sk-page-header:first-child {
+  margin: -8px 4px 18px;
+  align-items: flex-end;
+}
+.kadm-root[data-admin-wall] .kadm-panel > * > .sk-page-header:first-child .sk-page-title,
+.kadm-root[data-admin-wall] .kadm-panel > .sk-page-header:first-child .sk-page-title,
+.kadm-root[data-admin-wall] .kadm-panel > * > * > .sk-page-header:first-child .sk-page-title,
+.kadm-root[data-admin-wall] .kadm-panel > * > .sk-page-header:first-child .sk-breadcrumb,
+.kadm-root[data-admin-wall] .kadm-panel > .sk-page-header:first-child .sk-breadcrumb,
+.kadm-root[data-admin-wall] .kadm-panel > * > * > .sk-page-header:first-child .sk-breadcrumb {
+  display: none;
+}
+.kadm-root[data-admin-wall] .kadm-panel > * > .sk-page-header:first-child .sk-page-desc,
+.kadm-root[data-admin-wall] .kadm-panel > .sk-page-header:first-child .sk-page-desc,
+.kadm-root[data-admin-wall] .kadm-panel > * > * > .sk-page-header:first-child .sk-page-desc {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kw-head-2);
+  text-shadow: var(--kw-head-shadow);
+}
+
+/* ---------- Thẻ kính ---------- */
+.kadm-root[data-admin-wall] .sk-card,
+.kadm-root[data-admin-wall] .aip-card,
+.kadm-root[data-admin-wall] .stitch-card,
+.kadm-root[data-admin-wall] .stitch-empty-state,
+.kadm-root[data-admin-wall] .stitch-bear-notice-card,
+.kadm-root[data-admin-wall] .kadm-glass {
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: var(--kw-shadow);
+  border-radius: 18px;
+  color: var(--s-text);
+}
+.kadm-root[data-admin-wall] .sk-card { padding: 18px 20px; }
+/* Thẻ nằm trong thẻ: không chồng thêm kính và bóng */
+.kadm-root[data-admin-wall] .sk-card .sk-card,
+.kadm-root[data-admin-wall] .aip-card .sk-card,
+.kadm-root[data-admin-wall] .sk-card .aip-card {
+  background: var(--kw-glass-inner);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.kadm-root[data-admin-wall] .sk-kpi-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--s-text-2);
+}
+.kadm-root[data-admin-wall] .sk-kpi-value { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin: 6px 0 2px; }
+.kadm-root[data-admin-wall] .sk-kpi-sub { font-weight: 600; }
+
+/* Ô nhỏ bên trong thẻ */
+.kadm-root[data-admin-wall] .pm-mini,
+.kadm-root[data-admin-wall] .pm-task,
+.kadm-root[data-admin-wall] .pm-list-item,
+.kadm-root[data-admin-wall] .pm-problem,
+.kadm-root[data-admin-wall] .pm-feedback-item,
+.kadm-root[data-admin-wall] .sys-step,
+.kadm-root[data-admin-wall] .sys-tpl,
+.kadm-root[data-admin-wall] .sys-status-line,
+.kadm-root[data-admin-wall] .sys-json {
+  background: var(--kw-glass-inner);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.kadm-root[data-admin-wall] .pm-mini-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.kadm-root[data-admin-wall] .pm-card-title { font-size: 16px; font-weight: 700; }
+.kadm-root[data-admin-wall] .pm-bar { background: rgba(20, 45, 50, 0.1); }
+.kadm-root[data-admin-wall] .pm-bar > span { background: linear-gradient(90deg, #3CC9B9, #13A89E); }
+
+/* Bảng */
+.kadm-root[data-admin-wall] .sk-table thead th {
+  background: transparent;
+  color: #33484D;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  border-bottom: 1px solid rgba(20, 45, 50, 0.1);
+}
+.kadm-root[data-admin-wall] .sk-table tbody td { border-bottom: 1px solid rgba(20, 45, 50, 0.06); }
+.kadm-root[data-admin-wall] .sk-table tbody tr:hover td { background: rgba(255, 255, 255, 0.55); }
+
+/* Tab trong trang */
+.kadm-root[data-admin-wall] .sk-tabs { border-bottom: 1px solid rgba(20, 45, 50, 0.1); gap: 4px; }
+.kadm-root[data-admin-wall] .sk-tab { color: #33484D; }
+.kadm-root[data-admin-wall] .sk-tab.sk-on { color: #0A6A63; border-bottom-color: #13A89E; }
+
+/* Ô nhập */
+.kadm-root[data-admin-wall] .sk-input-wrap { border-width: 1px; background: rgba(255, 255, 255, 0.85); }
+.kadm-root[data-admin-wall] .sk-input-wrap:focus-within { border-color: #13A89E; box-shadow: 0 0 0 3px rgba(19, 168, 158, 0.18); }
+
+/* Tab của mục (Gia đình: Gia đình & học sinh / Báo cáo & NPS...) */
+.kadm-root[data-admin-wall] .kadm-section-tabs-wrap { margin: -4px 4px 18px; }
+.kadm-root[data-admin-wall] .kadm-section-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: 0 6px 20px rgba(20, 45, 50, 0.12);
+}
+.kadm-root[data-admin-wall] .kadm-section-tab {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 16px;
+  min-height: 40px;
+  color: #22383D;
+  font-weight: 600;
+  background: transparent;
+  box-shadow: none;
+}
+.kadm-root[data-admin-wall] .kadm-section-tab:hover { background: rgba(255, 255, 255, 0.7); }
+.kadm-root[data-admin-wall] .kadm-section-tab.is-on { background: #0B7C74; color: #FFFFFF; }
+.kadm-root[data-admin-wall] .kadm-section-tab.is-on::after { display: none; }
+
+/* Hộp thoại, ngăn kéo, thông báo (render ra body) */
+html[data-admin-wall] .sk-dialog {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: 0 30px 60px -20px rgba(10, 40, 50, 0.45);
+}
+html[data-admin-wall] .sk-drawer {
+  background: rgba(246, 250, 249, 0.96);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  border-left: 1px solid rgba(255, 255, 255, 0.9);
+}
+html[data-admin-wall] .sk-drawer-foot { background: rgba(255, 255, 255, 0.9); }
+html[data-admin-wall] .sk-overlay { background: rgba(10, 30, 35, 0.35); }
+
+/* Gợi ý nhỏ dưới số liệu */
+.pm-mini-hint {
+  font-size: 12px;
+  color: var(--s-text-2, #84664A);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+/* Nút xoá tài khoản giáo viên trong ngăn chi tiết */
+.kadm-drawer-foot { flex-wrap: wrap; width: 100%; }
+.kadm-drawer-foot .kadm-btn-delete { margin-left: auto; color: #B42318 !important; min-height: 44px; }
+
+/* ============================================================
+   ĐĂNG NHẬP, CHỜ KIỂM TRA PHIÊN, KHOÁ PIN
+   ============================================================ */
+.kadm-root[data-admin-wall] .kadm-center {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  min-height: 100vh;
+}
+.kadm-root[data-admin-wall] .kadm-auth-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 32px 16px;
+}
+.kadm-auth-hero { display: none; }
+.kadm-root[data-admin-wall] .kadm-auth-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  max-width: 560px;
+  color: var(--kw-head);
+  text-shadow: var(--kw-head-shadow);
+}
+.kadm-root[data-admin-wall] .kadm-auth-hero-eyebrow { font-size: 16px; font-weight: 600; color: var(--kw-head-2); }
+.kadm-root[data-admin-wall] .kadm-auth-hero-title {
+  font-family: var(--s-font-head);
+  font-size: 44px;
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--kw-head);
+}
+.kadm-root[data-admin-wall] .kadm-auth-hero-title.is-clock {
+  font-size: 80px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.kadm-root[data-admin-wall] .kadm-auth-hero-sub { margin: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--kw-head-2); }
+.kadm-root[data-admin-wall] .kadm-auth-card {
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: var(--kw-shadow);
+  border-radius: 22px;
+}
+.kadm-root[data-admin-wall] .kadm-auth-title { font-family: var(--s-font-head); font-weight: 700; color: #14262B; }
+.kadm-root[data-admin-wall] .kadm-auth-sub { color: #33484D; }
+.kadm-root[data-admin-wall] .kadm-auth-foot { border-top-color: rgba(20, 45, 50, 0.1); }
+.kadm-root[data-admin-wall] .kadm-link { color: #0A6A63; min-height: 44px; }
+.kadm-root[data-admin-wall] .kadm-key {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #14262B;
+  box-shadow: 0 2px 8px rgba(20, 45, 50, 0.08);
+}
+.kadm-root[data-admin-wall] .kadm-key:hover { background: #FFFFFF; }
+.kadm-root[data-admin-wall] .kadm-pin-dot { border-color: #0B7C74; background: rgba(255, 255, 255, 0.8); }
+.kadm-root[data-admin-wall] .kadm-pin-dot.is-filled { background: #0B7C74; }
+.kadm-root[data-admin-wall] .kadm-checking {
+  padding: 22px 30px;
+  border-radius: 22px;
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: var(--kw-shadow);
+  color: #22383D;
+}
+
+/* ============================================================
+   MÁY TÍNH BẢNG VÀ ĐIỆN THOẠI
+   ============================================================ */
+@media (max-width: 1180px) {
+  .kadm-root[data-admin-wall] .kadm-clock { display: none; }
+}
+@media (max-width: 767px) {
+  .kadm-root[data-admin-wall] .kadm-shell { padding: 10px; gap: 0; }
+  .kadm-root[data-admin-wall] .kadm-hd { top: 10px; height: 60px; padding: 0 8px; gap: 8px; }
+  .kadm-root[data-admin-wall] .kadm-menu-btn { display: inline-flex; }
+  .kadm-root[data-admin-wall] .kadm-search { min-width: 0; }
+  .kadm-root[data-admin-wall] .kadm-search-kbd { display: none; }
+  .kadm-root[data-admin-wall] .kadm-side {
+    height: 100vh;
+    top: 0;
+    border-radius: 0 22px 22px 0;
+    background: var(--kw-glass-strong);
+  }
+  .kadm-root[data-admin-wall] .kadm-hero { margin: 22px 2px 12px; }
+  .kadm-root[data-admin-wall] .kadm-hero .kadm-hero-title { font-size: 28px; }
+  .kadm-root[data-admin-wall] .kadm-content { padding: 0 0 32px; }
+  .kadm-root[data-admin-wall] .sk-card { padding: 14px; }
+  .kadm-hd > .kadm-wallpick { display: none; }
+  .kadm-wallpick-menu { display: block; padding: 10px 12px 12px; border-top: 1px solid rgba(20, 45, 50, 0.08); border-bottom: 1px solid rgba(20, 45, 50, 0.08); margin: 4px 0; }
+  .kadm-root[data-admin-wall] .kadm-auth-stage { gap: 14px; padding: 24px 12px; justify-content: flex-start; }
+  .kadm-root[data-admin-wall] .kadm-auth-hero-title { font-size: 32px; }
+  .kadm-root[data-admin-wall] .kadm-auth-hero-title.is-clock { font-size: 60px; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .kadm-root[data-admin-wall] .kadm-side,
+  .kadm-root[data-admin-wall] .kadm-hd,
+  .kadm-root[data-admin-wall] .sk-card,
+  .kadm-root[data-admin-wall] .aip-card {
+    background: var(--kw-glass-strong);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* ---------- Bổ sung vòng 2 ---------- */
+.kadm-root[data-admin-wall] .kadm-side { width: 252px; }
+.kadm-root[data-admin-wall] .kadm-hero {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.kadm-root[data-admin-wall] .kadm-hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kadm-root[data-admin-wall] .kadm-hero .kadm-section-tabs-wrap { margin: 0; text-shadow: none; }
+
+/* Card của bộ quy chuẩn (style viết thẳng trong thẻ) thành kính */
+.kadm-root[data-admin-wall] .staff-card {
+  background-color: var(--kw-glass) !important;
+  border: 1px solid var(--kw-glass-line) !important;
+  box-shadow: var(--kw-shadow) !important;
+  border-radius: 18px !important;
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+}
+.kadm-root[data-admin-wall] .staff-card .staff-card,
+.kadm-root[data-admin-wall] .sk-card .staff-card,
+.kadm-root[data-admin-wall] .staff-card .sk-card {
+  background-color: var(--kw-glass-inner) !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* Trạng thái trống nằm trong thẻ: bỏ khung trắng thứ hai */
+.kadm-root[data-admin-wall] :is(.staff-card, .sk-card, .aip-card) div:not(.staff-card)[style*='text-align: center'][style*='background-color: var(--s-surface)'] {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+/* Nút bị khoá: hết màu mật ong cũ */
+html[data-admin-wall] .staff-btn:disabled {
+  background-color: #DCE9E7 !important;
+  color: #3F5A57 !important;
+  border: 1px solid #C9DCD9 !important;
+  box-shadow: none !important;
+  opacity: 0.85 !important;
+}
+
+/* ---------- Bổ sung vòng 3: áp cho mọi trang ---------- */
+/* Đầu trang (PageHeader) nằm ngoài thẻ, ở bất kỳ độ sâu nào: tên đã hiện to ở trên nên ẩn, mô tả chữ trắng */
+.kadm-root[data-admin-wall] .kadm-panel .sk-page-header:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-page-header) {
+  margin: -8px 4px 18px;
+  align-items: flex-end;
+}
+.kadm-root[data-admin-wall] .kadm-panel .sk-page-header:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-page-header) :is(.sk-page-title, .sk-breadcrumb) {
+  display: none;
+}
+.kadm-root[data-admin-wall] .kadm-panel .sk-page-header:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-page-header) .sk-page-desc {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kw-head-2);
+  text-shadow: var(--kw-head-shadow);
+}
+/* Tab gạch chân nằm thẳng trên ảnh: thành dải kính có viên thuốc */
+.kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 16px;
+  border: 1px solid var(--kw-glass-line);
+  border-radius: 14px;
+  background: var(--kw-glass);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  box-shadow: 0 6px 20px rgba(20, 45, 50, 0.12);
+}
+.kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) .sk-tab {
+  margin: 0;
+  border: none;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 8px 14px;
+  font-weight: 600;
+  color: #22383D;
+}
+.kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) .sk-tab:hover { background: rgba(255, 255, 255, 0.7); }
+.kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) .sk-tab.sk-on { background: #0B7C74; color: #FFFFFF; }
+.kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) .sk-tab.sk-on .sk-tab-count { background: rgba(255, 255, 255, 0.25); color: #FFFFFF; }
+/* Trạng thái trống đứng riêng (không trong thẻ): thành thẻ kính */
+.kadm-root[data-admin-wall] .kadm-panel div:not(.staff-card)[style*='text-align: center'][style*='background-color: var(--s-surface)']:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) *) {
+  background-color: var(--kw-glass) !important;
+  border: 1px solid var(--kw-glass-line) !important;
+  box-shadow: var(--kw-shadow);
+  border-radius: 18px !important;
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+}
+/* Bộ lọc: ô chọn không chiếm cả dòng */
+.kadm-root[data-admin-wall] :is(.pm-toolbar, .sys-filters) > .sk-select { width: auto; flex: 0 1 220px; }
+.kadm-root[data-admin-wall] :is(.pm-toolbar, .sys-filters) > :is(.sk-input-wrap, .pm-grow) { flex: 1 1 240px; }
+
+
+/* ---------- Thanh bên thu gọn (mini, và màn 768 đến 1279px) ---------- */
+.kadm-root[data-admin-wall] .kadm-sep-text { white-space: nowrap; }
+@media (min-width: 1280px) {
+  .kadm-root[data-admin-wall] .kadm-side.is-mini {
+    width: 80px;
+    padding: 16px 10px 12px;
+    align-items: center;
+    overflow: visible;
+  }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-brand { padding: 0 0 12px; justify-content: center; width: 100%; }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini :is(.kadm-brand-text, .kadm-label, .kadm-tab-cnt, .kadm-side-close) { display: none; }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-nav { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-group { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  /* Tên nhóm (Người dùng, AI, Hệ thống) thành vạch mảnh, chữ chỉ còn cho trình đọc màn hình */
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-sep {
+    display: block;
+    width: 32px;
+    height: 1px;
+    margin: 10px auto 8px;
+    padding: 0;
+    background: rgba(20, 45, 50, 0.18);
+    font-size: 0;
+  }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-sep-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-nv {
+    position: relative;
+    width: 52px;
+    height: 46px;
+    min-height: 46px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-nv-icon { display: grid; place-items: center; margin: 0; }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-nv.is-on { box-shadow: 0 6px 16px rgba(11, 124, 116, 0.3); }
+  /* Số việc nằm ở góc biểu tượng, không đè sang mục bên cạnh */
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-badge {
+    position: absolute;
+    top: -5px;
+    right: -6px;
+    margin: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    font-size: 10.5px;
+    border: 2px solid #FFFFFF;
+    box-sizing: content-box;
+    line-height: 18px;
+  }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-foot-row { flex-direction: column; align-items: center; gap: 10px; }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-health { justify-content: center; padding: 0; border-top: none; flex: 0 0 auto; }
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-side-foot { width: 100%; }
+  /* Chú thích tên mục khi rê chuột hoặc dùng bàn phím */
+  .kadm-root[data-admin-wall] .kadm-side.is-mini .kadm-nv[data-tip]:is(:hover, :focus-visible)::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(20, 38, 43, 0.94);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 10px;
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 0 6px 18px rgba(10, 30, 35, 0.3);
+    pointer-events: none;
+  }
+}
+@media (max-width: 1279px) and (min-width: 768px) {
+  .kadm-root[data-admin-wall] .kadm-side {
+    width: 80px;
+    padding: 16px 10px 12px;
+    align-items: center;
+    overflow: visible;
+  }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-brand { padding: 0 0 12px; justify-content: center; width: 100%; }
+  .kadm-root[data-admin-wall] .kadm-side :is(.kadm-brand-text, .kadm-label, .kadm-tab-cnt, .kadm-side-close) { display: none; }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-nav { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-group { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  /* Tên nhóm (Người dùng, AI, Hệ thống) thành vạch mảnh, chữ chỉ còn cho trình đọc màn hình */
+  .kadm-root[data-admin-wall] .kadm-side .kadm-sep {
+    display: block;
+    width: 32px;
+    height: 1px;
+    margin: 10px auto 8px;
+    padding: 0;
+    background: rgba(20, 45, 50, 0.18);
+    font-size: 0;
+  }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-sep-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-nv {
+    position: relative;
+    width: 52px;
+    height: 46px;
+    min-height: 46px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-nv-icon { display: grid; place-items: center; margin: 0; }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-nv.is-on { box-shadow: 0 6px 16px rgba(11, 124, 116, 0.3); }
+  /* Số việc nằm ở góc biểu tượng, không đè sang mục bên cạnh */
+  .kadm-root[data-admin-wall] .kadm-side .kadm-badge {
+    position: absolute;
+    top: -5px;
+    right: -6px;
+    margin: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    font-size: 10.5px;
+    border: 2px solid #FFFFFF;
+    box-sizing: content-box;
+    line-height: 18px;
+  }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-foot-row { flex-direction: column; align-items: center; gap: 10px; }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-health { justify-content: center; padding: 0; border-top: none; flex: 0 0 auto; }
+  .kadm-root[data-admin-wall] .kadm-side .kadm-side-foot { width: 100%; }
+  /* Chú thích tên mục khi rê chuột hoặc dùng bàn phím */
+  .kadm-root[data-admin-wall] .kadm-side .kadm-nv[data-tip]:is(:hover, :focus-visible)::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(20, 38, 43, 0.94);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 10px;
+    white-space: nowrap;
+    z-index: 9999;
+    box-shadow: 0 6px 18px rgba(10, 30, 35, 0.3);
+    pointer-events: none;
+  }
+}
+
+/* Dải tab trên ảnh chỉ rộng theo nội dung (pm-page là cột flex nên mặc định bị kéo giãn) */
+.kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) { align-self: flex-start; width: fit-content; }
+
+/* ---------- Nút kiểu cũ (stitch-*) và các tab chế độ dùng chung màu nhấn ---------- */
+html[data-admin-wall],
+.kadm-root[data-admin-wall] {
+  --adm-primary: #0B7C74;
+  --adm-primary-text: #FFFFFF;
+  --adm-primary-border: #0B7C74;
+  --adm-primary-hover: #09665F;
+  --adm-accent-text: #0A6A63;
+  --adm-secondary-bg: rgba(255, 255, 255, 0.88);
+  --adm-secondary-text: #0A6A63;
+  --adm-border: #D6E4E1;
+  --adm-card: #FFFFFF;
+  --adm-text: #14262B;
+  --adm-sub: #33484D;
+  --adm-btn-shadow: none;
+  --adm-btn-radius: 999px;
+  --adm-font-head: 'Be Vietnam Pro', system-ui, sans-serif;
+  --adm-font-body: 'Be Vietnam Pro', system-ui, sans-serif;
+}
+.kadm-root[data-admin-wall] :is(.stitch-btn-primary, .stitch-btn-secondary) { border-width: 1px; min-height: 40px; font-weight: 700; }
+.kadm-root[data-admin-wall] .stitch-btn-primary:hover { background: #09665F; }
+.kadm-root[data-admin-wall] .stitch-btn-primary:active { transform: none; box-shadow: none; }
+
+/* Tab chế độ (Giao diện app): dải kính có viên thuốc, giống tab của mục */
+.kadm-mode-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background: var(--kw-glass, #FFFFFF);
+  border: 1px solid var(--kw-glass-line, #E2E8F0);
+  backdrop-filter: var(--kw-blur, none);
+  -webkit-backdrop-filter: var(--kw-blur, none);
+  box-shadow: 0 6px 20px rgba(20, 45, 50, 0.12);
+}
+.kadm-mode-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #22383D;
+  cursor: pointer;
+}
+.kadm-mode-tabs button:hover { background: rgba(255, 255, 255, 0.7); }
+.kadm-mode-tabs button.is-on { background: #0B7C74; color: #FFFFFF; }
+
+/* ---------- Điện thoại: đầu trang của trang xếp dọc, tab cuộn ngang ---------- */
+@media (max-width: 767px) {
+  .kadm-root[data-admin-wall] .kadm-panel .sk-page-header { flex-direction: column; align-items: stretch; gap: 10px; }
+  .kadm-root[data-admin-wall] .kadm-panel .sk-page-header > div:first-child { flex: 1 1 auto !important; width: 100%; }
+  .kadm-root[data-admin-wall] .kadm-panel .sk-page-actions { justify-content: flex-start; }
+  .kadm-root[data-admin-wall] .kadm-hero .kadm-section-tabs-wrap { width: 100%; }
+  .kadm-root[data-admin-wall] :is(.kadm-section-tabs, .kadm-mode-tabs) {
+    display: flex;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .kadm-root[data-admin-wall] :is(.kadm-section-tab, .kadm-mode-tabs button) { flex-shrink: 0; white-space: nowrap; }
+  .kadm-root[data-admin-wall] .kadm-panel .sk-tabs:not(:is(.sk-card, .staff-card, .aip-card, .stitch-card) .sk-tabs) { max-width: 100%; overflow-x: auto; }
+}
+
+/* ---------- Lớp phủ đầu trang (ảnh vườn): đủ tối để chữ trắng đạt 4,5:1 ở vùng tiêu đề ----------
+   Đo bằng cách ẩn chữ rồi lấy 95% điểm ảnh sáng nhất phía sau; phần dưới vẫn thấy ảnh rõ. */
+html[data-admin-wall='garden'] {
+  --kw-veil: linear-gradient(180deg, rgba(8, 30, 36, 0.66) 0, rgba(8, 30, 36, 0.6) 300px, rgba(8, 30, 36, 0.2) 420px, rgba(8, 30, 36, 0.08) 60%, rgba(8, 30, 36, 0.18) 100%);
+}
+@media (max-width: 767px) {
+  html[data-admin-wall='garden'] {
+    --kw-veil: linear-gradient(180deg, rgba(8, 30, 36, 0.66) 0, rgba(8, 30, 36, 0.6) 480px, rgba(8, 30, 36, 0.2) 620px, rgba(8, 30, 36, 0.1) 100%);
+  }
+}

@@ -1,0 +1,397 @@
+/* ============================================================
+   TỔNG QUAN: bố cục theo mẫu bảng quản trị v6 (29/10/2026)
+   Thẻ kính dùng chung lấy từ wallpaper.css (.sk-card), ở đây chỉ là bố cục.
+   ============================================================ */
+.kov-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+.kov-span-8 { grid-column: span 8; }
+.kov-span-4 { grid-column: span 4; }
+.kov-span-12 { grid-column: span 12; }
+.kov .sk-card { min-width: 0; }
+
+.kov-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* Thẻ chỉ số chính */
+.kov-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.kadm-root[data-admin-wall] .kov-hero {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(227, 246, 243, 0.72));
+}
+.kov-hero-main { display: flex; gap: 20px; align-items: center; min-width: 0; }
+.kov-ring {
+  --p: 0;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(#13A89E calc(var(--p) * 1%), rgba(20, 45, 50, 0.1) 0);
+}
+.kov-ring-inner {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+.kov-ring-inner b {
+  display: block;
+  font-family: var(--s-font-head);
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--s-text);
+  line-height: 1.1;
+}
+.kov-ring-inner small { font-size: 12px; color: var(--s-text-2); font-weight: 600; }
+.kov-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0A6A63;
+}
+.kov-hero-title {
+  font-family: var(--s-font-head);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--s-text);
+  margin: 6px 0 10px;
+}
+.kov-hero-sub { font-size: 13px; color: var(--s-text-2); }
+.kov-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--s-text);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed #A9D9D2;
+  border-radius: 12px;
+  padding: 9px 11px;
+}
+.kov-note svg { flex-shrink: 0; margin-top: 2px; color: #9A4A00; }
+
+.kov-minis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.kov-mini {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  min-width: 0;
+}
+.kov-k { font-size: 12.5px; font-weight: 600; color: var(--s-text-2); line-height: 1.35; }
+.kov-v {
+  font-family: var(--s-font-head);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--s-text);
+  margin: 4px 0 6px;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.kov-v small { font-size: 14px; font-weight: 600; color: var(--s-text-2); }
+.kov-v.is-warn { color: #B23A2C; }
+.kov-v.is-bad { color: #B42318; }
+.kov-h { font-size: 12.5px; color: var(--s-text-2); line-height: 1.4; }
+.kov-muted { font-size: 15px; font-weight: 600; color: var(--s-text-2); }
+.kov-bar { height: 6px; border-radius: 99px; background: rgba(20, 45, 50, 0.1); overflow: hidden; margin-top: 6px; }
+.kov-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #3CC9B9, #13A89E); }
+.kov-spark { width: 100%; height: 34px; display: block; }
+
+/* Cần bạn xử lý */
+.kadm-root[data-admin-wall] .kov-inbox {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.86);
+}
+.kov-inbox::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #13A89E; }
+.kov-count {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #D64A3A;
+  color: #FFFFFF;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.kov-task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 14px;
+  border: 1px solid #DCEDEA;
+  background: #F6FAF9;
+  color: var(--s-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.kov-task:hover { background: #EEF7F5; border-color: #C7E5E0; }
+.kov-task-ic {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #FFEDEA;
+  color: #B23A2C;
+}
+.kov-task.is-done .kov-task-ic { background: #E3F6F3; color: #0A6A63; }
+.kov-task-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.kov-task-text b { font-size: 14px; color: var(--s-text); }
+.kov-task-text span { font-size: 12.5px; color: var(--s-text-2); line-height: 1.4; }
+.kov-go {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #0B7C74;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+.kov-task.is-done .kov-go { background: transparent; color: #0A6A63; padding: 8px 4px; }
+.kov-live {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #DCEDEA;
+  font-size: 13px;
+  color: var(--s-text-2);
+}
+.kov-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #9FB3B0; flex-shrink: 0; }
+.kov-live-dot.is-on { background: #1E9E5A; box-shadow: 0 0 0 3px rgba(30, 158, 90, 0.2); }
+@media (prefers-reduced-motion: no-preference) {
+  .kov-live-dot.is-on { animation: kov-pulse 1.6s infinite; }
+}
+@keyframes kov-pulse { 50% { box-shadow: 0 0 0 6px rgba(30, 158, 90, 0); } }
+
+/* Chất lượng AI */
+.kov-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kov-metric { padding: 0 16px; border-left: 1px solid rgba(20, 45, 50, 0.1); min-width: 0; }
+.kov-metric:first-child { padding-left: 0; border-left: 0; }
+
+/* Tỉ trọng môn */
+.kov-subject + .kov-subject { margin-top: 12px; }
+.kov-subject-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.kov-subject-row b { color: var(--s-text); }
+.kov-subject-row span { color: var(--s-text-2); white-space: nowrap; }
+.kov-subject .kov-bar { height: 8px; }
+
+/* Bảng buổi học */
+.kov-tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.kov-filter { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(20, 45, 50, 0.05); }
+.kov-filter button {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--s-text-2);
+  padding: 7px 12px;
+  min-height: 36px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.kov-filter button.is-on { background: #E3F6F3; color: #0A6A63; }
+.kov-fam { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.kov-fam-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #E3F6F3;
+  color: #0A6A63;
+  flex-shrink: 0;
+}
+.kov-foot { padding-top: 12px; font-size: 12.5px; color: var(--s-text-2); }
+
+@media (max-width: 1200px) {
+  .kov-span-8, .kov-span-4 { grid-column: span 12; }
+}
+@media (max-width: 900px) {
+  .kov-hero { grid-template-columns: 1fr; }
+  .kov-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .kov-metric:nth-child(3) { padding-left: 0; border-left: 0; }
+}
+@media (max-width: 560px) {
+  .kov-hero-main { flex-direction: column; align-items: flex-start; }
+  .kov-ring { width: 128px; height: 128px; }
+  .kov-ring-inner { width: 100px; height: 100px; }
+  .kov-ring-inner b { font-size: 26px; }
+  .kov-minis { gap: 10px; }
+  .kov-mini { padding: 12px; }
+  .kov-v { font-size: 22px; }
+  .kov-metric { padding: 0 10px; }
+}
+
+/* ============================================================
+   PHÂN TÍCH HỌC TẬP (kan-*)
+   ============================================================ */
+.kan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.kan-wide { grid-column: 1 / -1; }
+.kan-empty { margin: 4px 0 0; }
+.kan-bars { display: grid; gap: 10px; }
+.kan-bar-row { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+.kan-bar-label { width: 52px; flex-shrink: 0; font-weight: 700; color: var(--s-text); }
+.kan-stack { flex: 1; display: flex; height: 22px; border-radius: 7px; overflow: hidden; gap: 2px; }
+.kan-stack > div { display: grid; place-items: center; font-size: 11px; font-weight: 700; min-width: 0; overflow: hidden; }
+.kan-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--s-text); margin-top: 4px; }
+.kan-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.kan-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.kan-masked { color: var(--s-text-2); font-style: italic; }
+.kan-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.kan-table th { font-weight: 600; color: var(--s-text-2); padding: 8px; border-bottom: 1px solid rgba(20, 45, 50, 0.1); }
+.kan-table td { padding: 8px; border-bottom: 1px solid rgba(20, 45, 50, 0.06); }
+.kan-types { display: grid; gap: 12px; }
+.kan-type-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--s-text); }
+.kan-types .kov-bar { height: 8px; }
+.kan-insight {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed #A9D9D2;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--s-text);
+}
+.kan-insight svg { flex-shrink: 0; color: #9A4A00; margin-top: 1px; }
+.kan-heat-wrap { overflow-x: auto; }
+.kan-heat { width: 100%; border-collapse: separate; border-spacing: 4px; font-size: 13px; }
+.kan-heat th { font-weight: 600; color: var(--s-text-2); padding: 6px; text-align: center; }
+.kan-heat tbody th { text-align: left; color: var(--s-text); font-weight: 700; }
+.kan-heat td { text-align: center; padding: 10px 6px; border-radius: 8px; font-weight: 700; }
+@media (max-width: 900px) {
+  .kan-grid { grid-template-columns: 1fr; }
+}
+
+/* Thanh chọn kiểu viên thuốc dùng chung trong các trang admin */
+.kadm-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1px solid var(--s-line);
+}
+.kadm-seg button {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--s-text-2);
+  padding: 6px 14px;
+  min-height: 34px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.kadm-seg button.is-on { background: var(--s-accent); color: var(--s-on-accent); }
+
+/* ============================================================
+   BẢNG ĐIỂM AI (kscore-*)
+   ============================================================ */
+.kscore-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.kscore-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.kscore-card:hover { transform: translateY(-2px); }
+.kscore-head { display: flex; width: 100%; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.kscore-title { font-size: 13.5px; font-weight: 600; color: var(--s-text-2); }
+.kscore-ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #E3F6F3; color: #0A6A63; flex-shrink: 0; }
+.kscore-value { font-family: var(--s-font-head); font-size: 30px; font-weight: 800; color: #0A6A63; letter-spacing: -0.01em; }
+.kscore-sub { font-size: 12.5px; color: var(--s-text-2); line-height: 1.4; }
+.kscore-target { margin-top: 4px; font-size: 12px; font-weight: 700; color: #0A6A63; background: rgba(227, 246, 243, 0.9); padding: 3px 10px; border-radius: 999px; }
+.kscore-foot {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--kw-head-2, var(--s-text-2));
+  text-shadow: var(--kw-head-shadow, none);
+  text-align: right;
+}
+
+/* ============================================================
+   KIỂM TRA TRƯỚC DEMO (kpd-*)
+   ============================================================ */
+.kpd-cost {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--kw-head-2, var(--s-text-2));
+  text-shadow: var(--kw-head-shadow, none);
+}
+.kpd-demo { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.kpd-demo.is-on { box-shadow: 0 0 0 2px #13A89E, var(--kw-shadow, none) !important; }
+.kpd-demo-text { flex: 1 1 420px; min-width: 0; }
+.kpd-demo-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.kpd-ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #E3F6F3; color: #0A6A63; flex-shrink: 0; }
+.kpd-demo-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.kpd-status { display: grid; place-items: center; margin-top: 1px; color: #6B7F84; }
+.kpd-running { color: #9A4A00; }
+.kpd-pass { color: #0A7A3F; }
+.kpd-warn { color: #9A4A00; }
+.kpd-fail { color: #B42318; }
+@media (prefers-reduced-motion: no-preference) {
+  .kpd-running svg { animation: kpd-spin 1.2s linear infinite; }
+}
+@keyframes kpd-spin { to { transform: rotate(360deg); } }
+
+/* Dòng ghi chú cuối trang nằm thấp trên ảnh: đặt trong một mảnh kính nhỏ để chữ đọc rõ */
+.kadm-root[data-admin-wall] .kscore-foot {
+  align-self: flex-end;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--kw-glass);
+  border: 1px solid var(--kw-glass-line);
+  backdrop-filter: var(--kw-blur);
+  -webkit-backdrop-filter: var(--kw-blur);
+  color: var(--s-text-2);
+  text-shadow: none;
+}

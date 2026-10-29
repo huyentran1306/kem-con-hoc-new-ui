@@ -1,0 +1,1448 @@
+/* ============================================================
+   🎨 8 BỘ GIAO DIỆN KÈM CON HỌC — CSS THEME SYSTEM
+   Chuẩn hoá biến ngữ nghĩa + tương thích ngược biến cũ
+   ============================================================ */
+
+/* 1. MẶC ĐỊNH (:root) — Kẹo Bông (Candy) */
+:root {
+  --c-sub: var(--c-text-2);
+  --c-bg: #FFF4F8;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #EDE4FF;
+  --c-line: #F3D9E6;
+  --c-text: #4A3B5C;
+  --c-text-2: #786C83;
+  --c-accent: #FF8FB8;
+  --c-accent-ink: #A35C76;
+  --c-accent-text: #4A3B5C;
+  --c-accent-2: #B9A3FF;
+  --c-on-accent: #4A3B5C;
+  --c-on-accent-2: #4A3B5C;
+  --c-good: #7FD8C4;
+  --c-good-bg: #E3F8F2;
+  --c-good-fg: #287B6A;
+  --c-on-good: #4A3B5C;
+  --c-warn: #FFD36E;
+  --c-warn-bg: #FFF8D6;
+  --c-warn-line: #FFE58A;
+  --c-warn-fg: #916B08;
+  --c-danger: #C14D7A;
+  --c-danger-ink: #BA4A76;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #1E1B2E;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFFFFF;
+  --c-read-text: #4A3B5C;
+  --c-hint1-bg: #FFF8D6;
+  --c-hint1-line: #FFE58A;
+  --c-btn: linear-gradient(#FFC9DD, #FFA9CA);
+  --c-btn-text: #4A2B45;
+  --c-nav: #FFFFFF;
+  --c-hero-bg: linear-gradient(160deg, #FDE8EF, #FFF0EC 60%, var(--c-bg));
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-btn: 999px;
+  --border-w: 2px;
+  --shadow-card: 0 7px 0 #F3D9E6;
+  --shadow-btn: 0 6px 0 #E0598E;
+  --font-head: 'Baloo 2', cursive, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-hand: 'Baloo 2', cursive, sans-serif;
+
+  /* ÁNH XẠ TƯƠNG THÍCH NGƯỢC BIẾN CŨ */
+  --bg: var(--c-bg);
+  --paper: var(--c-surface);
+  --line: var(--c-line);
+  --soft: var(--c-surface-2);
+  --ink: var(--c-text);
+  --muted: var(--c-text-2);
+  --plum: var(--c-accent);
+  --plum-deep: var(--c-danger);
+  --plum-tint: var(--c-surface-2);
+  --coral: var(--c-accent);
+  --coral-deep: var(--c-danger);
+  --coral-tint: var(--c-surface-2);
+  --mint: var(--c-good);
+  --mint-deep: var(--c-good-fg);
+  --mint-tint: var(--c-good-bg);
+  --sun: var(--c-warn);
+  --sun-tint: var(--c-warn-bg);
+  --sun-line: var(--c-warn-line);
+  --sky: var(--c-accent-2);
+  --sky-tint: var(--c-surface-2);
+  --red: var(--c-danger);
+  --radius: var(--radius-lg);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-card);
+  --modal-title: var(--c-text);
+  --modal-sub: var(--c-text-2);
+  --on-accent: var(--c-on-accent);
+  --on-good: var(--c-on-good);
+  --on-danger: var(--c-on-danger);
+}
+
+/* ÁP DỤNG FONT CHO TOÀN BỘ APP PHỤ HUYNH */
+body {
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3, h4, .brand, .hero-title, .title, .done-h {
+  font-family: var(--font-head);
+}
+
+/* 2. THEME CANDY · KẸO BÔNG */
+[data-theme="candy"] {
+  --c-ok-bg: #4FC4A9;
+  --c-ok-text: #1F3D36;
+  --c-bg: #FFF4F8;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #EDE4FF;
+  --c-line: #F3D9E6;
+  --c-text: #4A3B5C;
+  --c-text-2: #786C83;
+  --c-accent: #FF8FB8;
+  --c-accent-ink: #A35C76;
+  --c-accent-text: #4A3B5C;
+  --c-accent-2: #B9A3FF;
+  --c-on-accent: #4A3B5C;
+  --c-on-accent-2: #4A3B5C;
+  --c-good: #7FD8C4;
+  --c-good-bg: #E3F8F2;
+  --c-good-fg: #287B6A;
+  --c-on-good: #4A3B5C;
+  --c-warn: #FFD36E;
+  --c-warn-bg: #FFF8D6;
+  --c-warn-line: #FFE58A;
+  --c-warn-fg: #916B08;
+  --c-danger: #C14D7A;
+  --c-danger-ink: #BA4A76;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #1E1B2E;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFFFFF;
+  --c-read-text: #4A3B5C;
+  --c-hint1-bg: #FFF8D6;
+  --c-hint1-line: #FFE58A;
+  --c-btn: linear-gradient(#FFC9DD, #FFA9CA);
+  --c-btn-text: #4A2B45;
+  --c-nav: #FFFFFF;
+  --c-hero-bg: linear-gradient(160deg, #FDE8EF, #FFF0EC 60%, var(--c-bg));
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-btn: 999px;
+  --border-w: 2px;
+  --shadow-card: 0 7px 0 #F3D9E6;
+  --shadow-btn: 0 6px 0 #E0598E;
+  --font-head: 'Baloo 2', cursive, sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Baloo 2', cursive, sans-serif;
+}
+
+/* 3. THEME BEAR · BẠN GẤU */
+[data-theme="bear"] {
+  --c-ok-bg: #7DBB4C;
+  --c-ok-text: #22360F;
+  --c-bg: #FFF8EC;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #FFEBD1;
+  --c-line: #F0DDC2;
+  --c-text: #4B3621;
+  --c-text-2: #8B6D50;
+  --c-accent: #F6A623;
+  --c-accent-ink: #9B6916;
+  --c-accent-text: #4B3621;
+  --c-accent-2: #7FB7F5;
+  --c-on-accent: #4B3621;
+  --c-on-accent-2: #4B3621;
+  --c-good: #8CC98B;
+  --c-good-bg: #E8F6E6;
+  --c-good-fg: #3F7A3E;
+  --c-on-good: #4B3621;
+  --c-warn: #F6C56A;
+  --c-warn-bg: #FFF1D6;
+  --c-warn-line: #F6C56A;
+  --c-warn-fg: #976500;
+  --c-danger: #A3690C;
+  --c-danger-ink: #9F670B;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #1E1B2E;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFFFFF;
+  --c-read-text: #4B3621;
+  --c-hint1-bg: #FFF1D6;
+  --c-hint1-line: #F6C56A;
+  --c-btn: #F6A623;
+  --c-btn-text: #4B3621;
+  --c-nav: #FFFFFF;
+  --c-hero-bg: linear-gradient(160deg, #FFF0D6, #FFF9EB 60%, var(--c-bg));
+  --radius-lg: 26px;
+  --radius-md: 18px;
+  --radius-btn: 999px;
+  --border-w: 2px;
+  --shadow-card: 0 6px 0 #F0DDC2;
+  --shadow-btn: 0 6px 0 #C47F0E;
+  --font-head: 'Be Vietnam Pro', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Be Vietnam Pro', sans-serif;
+}
+
+/* 4. THEME BENTO · BENTO MỀM */
+[data-theme="bento"] {
+  --c-ok-bg: #1FA06A;
+  --c-ok-text: #FFFFFF;
+  --c-bg: #F7F7FA;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #F1EEFF;
+  --c-line: #E9EAF1;
+  --c-text: #1E1B3A;
+  --c-text-2: #6B6E80;
+  --c-accent: #FF7A66;
+  --c-accent-ink: #BD4F40;
+  --c-accent-text: #15161E;
+  --c-accent-2: #8A7CFF;
+  --c-on-accent: #15161E;
+  --c-on-accent-2: #15161E;
+  --c-good: #22B07D;
+  --c-good-bg: #E6F7EF;
+  --c-good-fg: #157E4D;
+  --c-on-good: #15161E;
+  --c-warn: #FFC94A;
+  --c-warn-bg: #FFF6E5;
+  --c-warn-line: #FFE2B0;
+  --c-warn-fg: #9A6700;
+  --c-danger: #B42318;
+  --c-danger-ink: #B42318;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #1E1B2E;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #EEEBFF;
+  --c-read-text: #2E2A5E;
+  --c-hint1-bg: #FFF6E5;
+  --c-hint1-line: #FFE2B0;
+  --c-btn: linear-gradient(135deg, #FF7A66, #9B8CFF);
+  --c-btn-text: #1F1A45;
+  --c-nav: #FFFFFF;
+  --c-hero-bg: linear-gradient(160deg, #F1EEFF, #F7F7FA 60%, var(--c-bg));
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-btn: 999px;
+  --border-w: 1px;
+  --shadow-card: 0 10px 26px -20px rgba(21, 22, 30, .35);
+  --shadow-btn: 0 12px 24px -14px rgba(21, 22, 30, .5);
+  --font-head: 'Lexend', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-hand: 'Lexend', sans-serif;
+}
+
+/* 5. THEME STICKER · STICKER STUDIO */
+[data-theme="sticker"] {
+  --c-ok-bg: #2DBE98;
+  --c-ok-text: #1B1B2F;
+  --c-bg: #FFF7E6;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #FFF1C9;
+  --c-line: #1B1B2F;
+  --c-text: #1B1B2F;
+  --c-text-2: #5C5A70;
+  --c-accent: #FF4F8B;
+  --c-accent-ink: #C73E6C;
+  --c-accent-text: #1B1B2F;
+  --c-accent-2: #5667F2;
+  --c-on-accent: #1B1B2F;
+  --c-on-accent-2: #FFFFFF;
+  --c-good: #39C6A5;
+  --c-good-bg: #D7F5EC;
+  --c-good-fg: #1B1B2F;
+  --c-on-good: #1B1B2F;
+  --c-warn: #FFC928;
+  --c-warn-bg: #FFF1C9;
+  --c-warn-line: #1B1B2F;
+  --c-warn-fg: #1B1B2F;
+  --c-danger: #FF4F8B;
+  --c-danger-ink: #C73E6C;
+  --c-on-danger: #1B1B2F;
+  --c-toast-bg: #1E1B2E;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFFFFF;
+  --c-read-text: #1B1B2F;
+  --c-hint1-bg: #FFC928;
+  --c-hint1-line: #1B1B2F;
+  --c-btn: #FF4F8B;
+  --c-btn-text: #1B1B2F;
+  --c-nav: #FFFFFF;
+  --c-hero-bg: linear-gradient(160deg, #FFF1C9, #FFF7E6 60%, var(--c-bg));
+  --radius-lg: 20px;
+  --radius-md: 16px;
+  --radius-btn: 18px;
+  --border-w: 3px;
+  --shadow-card: 5px 5px 0 #1B1B2F;
+  --shadow-btn: 4px 4px 0 #1B1B2F;
+  --font-head: 'Paytone One', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Paytone One', sans-serif;
+}
+
+/* 6. THEME NOTEBOOK · SỔ TAY BUỔI TỐI */
+[data-theme="notebook"] {
+  --c-ok-bg: #6A8A57;
+  --c-ok-text: #FFFFFF;
+  --c-bg: #F6F1E7;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #EFE8DA;
+  --c-line: #D9D0BE;
+  --c-text: #2A2622;
+  --c-text-2: #756D5E;
+  --c-accent: #B85B37;
+  --c-accent-ink: #AC5533;
+  --c-accent-text: #FFFFFF;
+  --c-accent-2: #5A4B7A;
+  --c-on-accent: #FFFFFF;
+  --c-on-accent-2: #FFFFFF;
+  --c-good: #7D9A6B;
+  --c-good-bg: #E6EDE0;
+  --c-good-fg: #4F6B3F;
+  --c-on-good: #2A2622;
+  --c-warn: #D8A334;
+  --c-warn-bg: #FBF3DC;
+  --c-warn-line: #D8A334;
+  --c-warn-fg: #956400;
+  --c-danger: #A32A1A;
+  --c-danger-ink: #A32A1A;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #1E1B2E;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFFFFF;
+  --c-read-text: #2A2622;
+  --c-hint1-bg: #FBF3DC;
+  --c-hint1-line: #D8A334;
+  --c-btn: #2A2622;
+  --c-btn-text: #F6F1E7;
+  --c-nav: #F6F1E7;
+  --c-hero-bg: linear-gradient(160deg, #EFE8DA, #F6F1E7 60%, var(--c-bg));
+  --radius-lg: 4px;
+  --radius-md: 4px;
+  --radius-btn: 4px;
+  --border-w: 1px;
+  --shadow-card: 0 12px 26px -20px rgba(42, 38, 34, .5);
+  --shadow-btn: none;
+  --font-head: 'Playfair Display', serif;
+  --font-body: 'Lora', serif;
+  --font-hand: 'Mali', cursive;
+}
+
+/* 7. THEME GARDEN · KHU VƯỜN ĐÊM (DARK) */
+[data-theme="garden"] {
+  --c-ok-bg: #3FD6A0;
+  --c-ok-text: #0F2A24;
+  --c-bg: #0F2A24;
+  --c-surface: #163B33;
+  --c-surface-2: #1C4A3F;
+  --c-line: #2A5248;
+  --c-text: #F2F7EE;
+  --c-text-2: #A9C4B5;
+  --c-accent: #FFD166;
+  --c-accent-ink: #FFD166;
+  --c-accent-text: #0F2A24;
+  --c-accent-2: #6EE7B7;
+  --c-on-accent: #0F2A24;
+  --c-on-accent-2: #0F2A24;
+  --c-good: #6EE7B7;
+  --c-good-bg: #1B4A3B;
+  --c-good-fg: #6EE7B7;
+  --c-on-good: #0F2A24;
+  --c-warn: #FFD166;
+  --c-warn-bg: #3A3A1F;
+  --c-warn-line: #7C7A34;
+  --c-warn-fg: #FFD166;
+  --c-danger: #FF6B6B;
+  --c-danger-ink: #FF6E6E;
+  --c-on-danger: #0F2A24;
+  --c-toast-bg: #F6F1E6;
+  --c-toast-text: #0F2A24;
+  --c-read-bg: #163B33;
+  --c-read-text: #F2F7EE;
+  --c-hint1-bg: #3A3A1F;
+  --c-hint1-line: #FFD166;
+  --c-btn: #FFD166;
+  --c-btn-text: #0F2A24;
+  --c-nav: #0C221D;
+  --c-hero-bg: linear-gradient(160deg, #1C4A3F, #163B33 60%, #0F2A24);
+  --radius-lg: 28px 28px 28px 10px;
+  --radius-md: 20px 20px 20px 8px;
+  --radius-btn: 999px;
+  --border-w: 1.5px;
+  --shadow-card: 0 14px 30px -22px rgba(0, 0, 0, .8);
+  --shadow-btn: 0 0 34px -8px rgba(255, 209, 102, .8);
+  --font-head: 'Comfortaa', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Comfortaa', sans-serif;
+}
+
+/* 8. THEME AURORA · CỰC QUANG (DARK & GLASS) */
+[data-theme="aurora"] {
+  --c-ok-bg: #22C3A6;
+  --c-ok-text: #0B1026;
+  --c-bg: #0B1026;
+  --c-surface: rgba(255, 255, 255, .08);
+  --c-surface-2: rgba(167, 139, 250, .2);
+  --c-line: rgba(255, 255, 255, .16);
+  --c-text: #F3F4FF;
+  --c-text-2: #B2B5C3;
+  --c-accent: #22D3EE;
+  --c-accent-ink: #22D3EE;
+  --c-accent-text: #0B1026;
+  --c-accent-2: #A78BFA;
+  --c-on-accent: #0B1026;
+  --c-on-accent-2: #0B1026;
+  --c-good: #34D399;
+  --c-good-bg: rgba(52, 211, 153, .16);
+  --c-good-fg: #34D399;
+  --c-on-good: #0B1026;
+  --c-warn: #F472B6;
+  --c-warn-bg: rgba(244, 114, 182, .14);
+  --c-warn-line: #F472B6;
+  --c-warn-fg: #F9A8D4;
+  --c-danger: #F43F5E;
+  --c-danger-ink: #F54C69;
+  --c-on-danger: #0B1026;
+  --c-toast-bg: #F6F1E6;
+  --c-toast-text: #0B1026;
+  --c-read-bg: rgba(255, 255, 255, .08);
+  --c-read-text: #F3F4FF;
+  --c-hint1-bg: rgba(34, 211, 238, .12);
+  --c-hint1-line: #22D3EE;
+  --c-btn: linear-gradient(90deg, #22D3EE, #34D399);
+  --c-btn-text: #0B1026;
+  --c-nav: rgba(11, 16, 38, .85);
+  --c-hero-bg: linear-gradient(160deg, rgba(167, 139, 250, .25), rgba(34, 211, 238, .12) 60%, #0B1026);
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-btn: 999px;
+  --border-w: 1px;
+  --shadow-card: 0 20px 50px -30px rgba(0, 0, 0, .8);
+  --shadow-btn: 0 14px 30px -10px rgba(34, 211, 238, .8);
+  --font-head: 'Unbounded', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-hand: 'Unbounded', sans-serif;
+}
+
+/* 9. THEME CHALK · BẢNG PHẤN (DARK) */
+[data-theme="chalk"] {
+  --c-ok-bg: #93D985;
+  --c-ok-text: #22351F;
+  --c-bg: #2F4A41;
+  --c-surface: rgba(246, 241, 230, .07);
+  --c-surface-2: rgba(154, 208, 245, .14);
+  --c-line: rgba(246, 241, 230, .75);
+  --c-text: #F6F1E6;
+  --c-text-2: #CFC8B8;
+  --c-accent: #F9E07F;
+  --c-accent-ink: #F9E07F;
+  --c-accent-text: #2F4A41;
+  --c-accent-2: #9AD0F5;
+  --c-on-accent: #2F4A41;
+  --c-on-accent-2: #2F4A41;
+  --c-good: #B5E8A8;
+  --c-good-bg: rgba(181, 232, 168, .16);
+  --c-good-fg: #B5E8A8;
+  --c-on-good: #2F4A41;
+  --c-warn: #F7A1C4;
+  --c-warn-bg: rgba(247, 161, 196, .14);
+  --c-warn-line: #F7A1C4;
+  --c-warn-fg: #F7A1C4;
+  --c-danger: #BC5656;
+  --c-danger-ink: #FBAFAF;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #F6F1E6;
+  --c-toast-text: #2F4A41;
+  --c-read-bg: rgba(246, 241, 230, .07);
+  --c-read-text: #F6F1E6;
+  --c-hint1-bg: rgba(249, 224, 127, .14);
+  --c-hint1-line: #F9E07F;
+  --c-btn: #F9E07F;
+  --c-btn-text: #2F4A41;
+  --c-nav: #27403A;
+  --c-hero-bg: linear-gradient(160deg, rgba(154, 208, 245, .18), rgba(246, 241, 230, .08) 60%, #2F4A41);
+  --radius-lg: 18px 6px 16px 8px;
+  --radius-md: 12px 5px 14px 6px;
+  --radius-btn: 14px 6px 12px 8px;
+  --border-w: 2px;
+  --shadow-card: none;
+  --shadow-btn: 3px 3px 0 rgba(246, 241, 230, .5);
+  --font-head: 'Coiny', cursive;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Itim', cursive;
+}
+
+/* ÁP DỤNG BIẾN LÊN CÁC COMPONENT CỐT LÕI */
+.stage {
+  background: var(--c-bg) !important;
+}
+
+.app {
+  background: var(--c-bg) !important;
+  color: var(--c-text) !important;
+  font-family: var(--font-body);
+  position: relative;
+  overflow: hidden;
+}
+
+.card, .big-card, .mini, .sheet .pn {
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: var(--border-w) solid var(--c-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.btn.solid, .btn.primary {
+  background: var(--c-btn) !important;
+  color: var(--c-btn-text) !important;
+  border-radius: var(--radius-btn);
+  box-shadow: var(--shadow-btn);
+}
+
+.opt.on {
+  border-color: var(--c-accent) !important;
+  background: var(--c-surface-2) !important;
+  color: var(--c-text) !important;
+}
+
+.lbl.plum, .plum {
+  color: var(--c-text-2) !important;
+}
+
+.field {
+  border-color: var(--c-line) !important;
+  color: var(--c-text) !important;
+}
+
+.field:focus {
+  border-color: var(--c-accent) !important;
+}
+
+.btn.ghost {
+  background: transparent !important;
+  color: var(--c-text) !important;
+  border: var(--border-w) solid var(--c-line) !important;
+  border-radius: var(--radius-btn);
+}
+
+.bnav {
+  background: var(--c-nav) !important;
+  border-top: var(--border-w) solid var(--c-line) !important;
+  position: relative;
+  z-index: 10;
+}
+
+.bnav button {
+  color: var(--c-text-2);
+}
+
+.bnav button.active {
+  color: var(--c-accent);
+}
+
+/* ============================================================
+   ĐỒNG BỘ CHI TIẾT TỪNG BỘ GIAO DIỆN (8-BO-GIAO-DIEN-RIENG.HTML)
+   ============================================================ */
+
+/* 1. AURORA (CỰC QUANG) · DARK & GLASSMORPHISM */
+[data-theme="aurora"] .stage,
+[data-theme="aurora"] .app {
+  background: #0B1026 !important;
+  color: #F3F4FF !important;
+}
+
+[data-theme="aurora"] .card,
+[data-theme="aurora"] .big-card,
+[data-theme="aurora"] .card.plum,
+[data-theme="aurora"] .card.sun,
+[data-theme="aurora"] .card.mint,
+[data-theme="aurora"] .card.sky,
+[data-theme="aurora"] .card.coral,
+[data-theme="aurora"] .card.sunset,
+[data-theme="aurora"] .sheet .pn,
+[data-theme="aurora"] .mini,
+[data-theme="aurora"] .opt.on {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 24px !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  color: #F3F4FF !important;
+}
+
+[data-theme="aurora"] .title em,
+[data-theme="aurora"] .h-title em,
+[data-theme="aurora"] h1 em,
+[data-theme="aurora"] h2 em {
+  font-style: normal;
+  background: linear-gradient(90deg, #22D3EE, #A78BFA, #F472B6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+
+[data-theme="aurora"] .btn.solid, [data-theme="aurora"] .btn.primary {
+  background: linear-gradient(90deg, #22D3EE, #34D399) !important;
+  color: #0B1026 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 14px 30px -10px rgba(34, 211, 238, 0.8) !important;
+  border: 0 !important;
+  font-weight: 800;
+}
+
+[data-theme="aurora"] .btn.ghost {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #F3F4FF !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 999px !important;
+}
+
+[data-theme="aurora"] .bnav {
+  background: rgba(11, 16, 38, 0.88) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+[data-theme="aurora"] .sub,
+[data-theme="aurora"] .lbl.mut {
+  color: rgba(243, 244, 255, 0.72) !important;
+}
+
+@keyframes spinOrb {
+  to { transform: rotate(360deg); }
+}
+@keyframes unspinOrb {
+  to { transform: rotate(-360deg); }
+}
+
+/* 2. STICKER STUDIO (STICKER) · BOLD 3PX COMICS */
+[data-theme="sticker"] .stage,
+[data-theme="sticker"] .app {
+  background-color: #FFF7E6 !important;
+  background-image: radial-gradient(rgba(27, 27, 47, 0.14) 1.5px, transparent 1.6px) !important;
+  background-size: 18px 18px !important;
+  color: #1B1B2F !important;
+}
+
+[data-theme="sticker"] .card,
+[data-theme="sticker"] .big-card,
+[data-theme="sticker"] .sheet .pn,
+[data-theme="sticker"] .mini,
+[data-theme="sticker"] .field {
+  background: #FFFFFF !important;
+  border: 3px solid #1B1B2F !important;
+  border-radius: 20px !important;
+  box-shadow: 5px 5px 0 #1B1B2F !important;
+  color: #1B1B2F !important;
+}
+
+[data-theme="sticker"] .card.plum,
+[data-theme="sticker"] .big-card.plum {
+  background: #FF4F8B !important;
+  color: #FFFFFF !important;
+  border: 3px solid #1B1B2F !important;
+  box-shadow: 5px 5px 0 #1B1B2F !important;
+}
+
+[data-theme="sticker"] .card.sun,
+[data-theme="sticker"] .big-card.sun {
+  background: #FFC928 !important;
+  color: #1B1B2F !important;
+  border: 3px solid #1B1B2F !important;
+  box-shadow: 5px 5px 0 #1B1B2F !important;
+}
+
+[data-theme="sticker"] .card.mint,
+[data-theme="sticker"] .big-card.mint {
+  background: #39C6A5 !important;
+  color: #1B1B2F !important;
+  border: 3px solid #1B1B2F !important;
+  box-shadow: 5px 5px 0 #1B1B2F !important;
+}
+
+[data-theme="sticker"] .card.sky,
+[data-theme="sticker"] .big-card.sky {
+  background: #5B6CFF !important;
+  color: #FFFFFF !important;
+  border: 3px solid #1B1B2F !important;
+  box-shadow: 5px 5px 0 #1B1B2F !important;
+}
+
+[data-theme="sticker"] .btn.solid, [data-theme="sticker"] .btn.primary {
+  background: #FF4F8B !important;
+  color: #FFFFFF !important;
+  border: 3px solid #1B1B2F !important;
+  border-radius: 22px !important;
+  box-shadow: 0 6px 0 #1B1B2F !important;
+  font-family: 'Paytone One', sans-serif !important;
+}
+
+[data-theme="sticker"] .btn.ghost {
+  background: #FFFFFF !important;
+  color: #1B1B2F !important;
+  border: 3px solid #1B1B2F !important;
+  border-radius: 18px !important;
+  box-shadow: 4px 4px 0 #1B1B2F !important;
+}
+
+[data-theme="sticker"] .chip,
+[data-theme="sticker"] .pill {
+  border: 2.5px solid #1B1B2F !important;
+  border-radius: 14px !important;
+  box-shadow: 3px 3px 0 #1B1B2F !important;
+  font-weight: 900;
+  color: #1B1B2F;
+}
+
+[data-theme="sticker"] .bnav {
+  background: #FFFFFF !important;
+  border-top: 3px solid #1B1B2F !important;
+  box-shadow: 0 -4px 0 #1B1B2F !important;
+}
+
+/* 3. SỔ TAY BUỔI TỐI (NOTEBOOK) · LINED PAPER & WASHI TAPE */
+[data-theme="notebook"] .stage,
+[data-theme="notebook"] .app {
+  background-color: #F6F1E7 !important;
+  background-image: linear-gradient(rgba(42, 38, 34, 0.07) 1px, transparent 1px) !important;
+  background-size: 100% 28px !important;
+  color: #2A2622 !important;
+}
+
+[data-theme="notebook"] .card,
+[data-theme="notebook"] .big-card,
+[data-theme="notebook"] .card.plum,
+[data-theme="notebook"] .card.sun,
+[data-theme="notebook"] .card.mint,
+[data-theme="notebook"] .card.sky,
+[data-theme="notebook"] .card.coral,
+[data-theme="notebook"] .sheet .pn,
+[data-theme="notebook"] .mini {
+  background: #FFFFFF !important;
+  border: 1px solid #D9D0BE !important;
+  border-radius: 3px !important;
+  box-shadow: 0 14px 30px -22px rgba(42, 38, 34, 0.5) !important;
+  color: #2A2622 !important;
+  position: relative;
+}
+
+[data-theme="notebook"] .card::before,
+[data-theme="notebook"] .big-card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 84px;
+  height: 22px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgba(216, 163, 52, 0.55);
+  mix-blend-mode: multiply;
+  border-radius: 2px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+[data-theme="notebook"] .btn.solid, [data-theme="notebook"] .btn.primary {
+  background: #2A2622 !important;
+  color: #F6F1E7 !important;
+  border: 1.5px solid #2A2622 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 800;
+}
+
+[data-theme="notebook"] .btn.ghost {
+  background: transparent !important;
+  color: #2A2622 !important;
+  border: 1.5px solid #2A2622 !important;
+  border-radius: 4px !important;
+}
+
+[data-theme="notebook"] .bnav {
+  background: #F6F1E7 !important;
+  border-top: 1.5px solid #2A2622 !important;
+}
+
+/* 4. BENTO MỀM (BENTO) · PILL TILES & MODERN CLEAN */
+[data-theme="bento"] .stage,
+[data-theme="bento"] .app {
+  background: #F7F7FA !important;
+  color: #1E1B3A !important;
+}
+
+[data-theme="bento"] .card,
+[data-theme="bento"] .big-card,
+[data-theme="bento"] .sheet .pn,
+[data-theme="bento"] .mini {
+  background: #FFFFFF !important;
+  border: 1px solid #E9EAF1 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 10px 24px -20px rgba(21, 22, 30, 0.4) !important;
+  color: #1E1B3A !important;
+}
+
+[data-theme="bento"] .btn.solid, [data-theme="bento"] .btn.primary {
+  background: linear-gradient(135deg, #FF7A66, #9B8CFF) !important;
+  color: #1F1A45 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 22px -14px rgba(110, 90, 220, 0.7) !important;
+  border: 0 !important;
+  font-weight: 700;
+}
+
+[data-theme="bento"] .bnav {
+  margin: 0 16px 14px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid #E9EAF1 !important;
+  box-shadow: 0 12px 30px -18px rgba(21, 22, 30, 0.5) !important;
+}
+
+/* 5. KHU VƯỜN ĐÊM (GARDEN) · DEEP FOREST & LEAF RADIUS */
+[data-theme="garden"] .stage,
+[data-theme="garden"] .app {
+  background: radial-gradient(260px 200px at 100% 0%, #1B4A3B, transparent 70%), #0F2A24 !important;
+  color: #F2F7EE !important;
+}
+
+[data-theme="garden"] .card,
+[data-theme="garden"] .big-card,
+[data-theme="garden"] .card.plum,
+[data-theme="garden"] .card.sun,
+[data-theme="garden"] .card.mint,
+[data-theme="garden"] .card.sky,
+[data-theme="garden"] .card.coral,
+[data-theme="garden"] .card.sunset,
+[data-theme="garden"] .sheet .pn,
+[data-theme="garden"] .mini {
+  background: #163B33 !important;
+  border: 1.5px solid #2A5248 !important;
+  border-radius: 26px 6px 26px 6px !important;
+  box-shadow: 0 14px 30px -22px rgba(0, 0, 0, 0.8) !important;
+  color: #F2F7EE !important;
+}
+
+[data-theme="garden"] .btn.solid, [data-theme="garden"] .btn.primary {
+  background: #FFD166 !important;
+  color: #0F2A24 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 30px -8px rgba(255, 209, 102, 0.8) !important;
+  border: 0 !important;
+  font-weight: 800;
+}
+
+[data-theme="garden"] .btn.ghost {
+  background: transparent !important;
+  color: #F2F7EE !important;
+  border: 1.5px solid #2A5248 !important;
+  border-radius: 999px !important;
+}
+
+[data-theme="garden"] .bnav {
+  background: #0C221D !important;
+  border-top: 1.5px solid #2A5248 !important;
+}
+
+/* 6. BẢNG PHẤN (CHALK) · ORGANIC WOBBLY CHALK FRAME */
+[data-theme="chalk"] .stage,
+[data-theme="chalk"] .app {
+  background: radial-gradient(260px 120px at 20% 30%, rgba(246, 241, 230, 0.07), transparent 70%),
+              radial-gradient(220px 160px at 80% 75%, rgba(246, 241, 230, 0.05), transparent 70%),
+              #2F4A41 !important;
+  color: #F6F1E6 !important;
+}
+
+[data-theme="chalk"] .app {
+  box-shadow: inset 0 0 0 8px #7A5233, inset 0 0 0 11px #5C3B22 !important;
+}
+
+[data-theme="chalk"] .card,
+[data-theme="chalk"] .big-card,
+[data-theme="chalk"] .card.plum,
+[data-theme="chalk"] .card.sun,
+[data-theme="chalk"] .card.mint,
+[data-theme="chalk"] .card.sky,
+[data-theme="chalk"] .card.coral,
+[data-theme="chalk"] .card.sunset,
+[data-theme="chalk"] .sheet .pn,
+[data-theme="chalk"] .mini {
+  border: 2px solid rgba(246, 241, 230, 0.75) !important;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+  background: rgba(246, 241, 230, 0.07) !important;
+  color: #F6F1E6 !important;
+  box-shadow: none !important;
+}
+
+[data-theme="chalk"] .btn.solid, [data-theme="chalk"] .btn.primary {
+  background: transparent !important;
+  border: 2.5px solid #F9E07F !important;
+  color: #F9E07F !important;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+  font-family: 'Coiny', cursive !important;
+  box-shadow: none !important;
+}
+
+[data-theme="chalk"] .btn.ghost {
+  background: transparent !important;
+  color: #F6F1E6 !important;
+  border: 2px solid rgba(246, 241, 230, 0.8) !important;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+}
+
+[data-theme="chalk"] .bnav {
+  background: linear-gradient(#6E482B, #573821) !important;
+  border-top: 3px solid #8C6142 !important;
+  color: #EADFC8 !important;
+  font-family: 'Itim', cursive !important;
+}
+
+/* 7. KẸO BÔNG (CANDY) · MARSHMALLOW PILLOW */
+[data-theme="candy"] .stage,
+[data-theme="candy"] .app {
+  background: #FFF4F8 !important;
+  color: #4A3B5C !important;
+}
+
+[data-theme="candy"] .card,
+[data-theme="candy"] .big-card,
+[data-theme="candy"] .sheet .pn,
+[data-theme="candy"] .mini {
+  background: #FFFFFF !important;
+  border: 2px solid #F3D9E6 !important;
+  border-radius: 26px !important;
+  box-shadow: 0 6px 0 #F3D9E6 !important;
+  color: #4A3B5C !important;
+}
+
+[data-theme="candy"] .btn.solid, [data-theme="candy"] .btn.primary {
+  background: linear-gradient(#FFA3C6, #FF7FAE) !important;
+  color: #4A2B45 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 0 #E0598E !important;
+  font-family: 'Baloo 2', cursive !important;
+  border: 0 !important;
+}
+
+[data-theme="candy"] .bnav {
+  background: #FFFFFF !important;
+  border-top: 2px solid #F3D9E6 !important;
+}
+
+/* 8. BẠN GẤU (BEAR) · HONEY AMBER */
+[data-theme="bear"] .stage,
+[data-theme="bear"] .app {
+  background: #FFF8EC !important;
+  color: #4B3621 !important;
+}
+
+[data-theme="bear"] .card,
+[data-theme="bear"] .big-card,
+[data-theme="bear"] .sheet .pn,
+[data-theme="bear"] .mini {
+  background: #FFFFFF !important;
+  border: 2px solid #F0DDC2 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 5px 0 #F0DDC2 !important;
+  color: #4B3621 !important;
+}
+
+[data-theme="bear"] .btn.solid, [data-theme="bear"] .btn.primary {
+  background: #F6A623 !important;
+  color: #4B3621 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 0 #C47F0E !important;
+  font-family: 'Baloo 2', sans-serif !important;
+  font-weight: 700 !important;
+  border: 0 !important;
+}
+
+[data-theme="bear"] .bnav {
+  background: #FFFFFF !important;
+  border-top: 2px solid #F0DDC2 !important;
+}
+
+/* WCAG AA CONTRAST COMPONENT ENFORCEMENT */
+.btn.mint {
+  background: var(--c-good) !important;
+  color: var(--c-on-good) !important;
+}
+.btn.coral {
+  background: var(--c-accent) !important;
+  color: var(--c-on-accent) !important;
+}
+.btn.sky {
+  background: var(--c-accent-2) !important;
+  color: var(--c-on-accent-2) !important;
+}
+.step-row .n {
+  background: var(--c-accent) !important;
+  color: var(--c-on-accent) !important;
+}
+.step-row .n.ok {
+  background: var(--c-good) !important;
+  color: var(--c-on-good) !important;
+}
+.loader .li.ok .dot {
+  background: var(--c-good) !important;
+  color: var(--c-on-good) !important;
+}
+.calm-fab {
+  background: var(--c-accent) !important;
+  color: var(--c-on-accent) !important;
+}
+.toast {
+  background: var(--c-toast-bg) !important;
+  color: var(--c-toast-text) !important;
+}
+.timer-chip {
+  background: var(--c-danger) !important;
+  color: var(--c-on-danger) !important;
+}
+.chat .u {
+  background: var(--c-accent) !important;
+  color: var(--c-on-accent) !important;
+}
+.tag-new {
+  background: var(--c-accent) !important;
+  color: var(--c-on-accent) !important;
+}
+
+/* Bento Theme adjustments */
+[data-theme="bento"] .chat .u {
+  background: #EEEBFF !important;
+  color: #2E2A5E !important;
+}
+[data-theme="bento"] .tabs .on,
+[data-theme="bento"] .bnav button.active {
+  background: #EEEBFF !important;
+  color: #2E2A5E !important;
+  border-radius: 999px;
+}
+
+/* HIỆU ỨNG TẮT HOẶC NHẸ KHI MOTION = 'off' */
+[data-motion="off"] *,
+[data-motion="off"] *::before,
+[data-motion="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ============================================================
+   LỚP TRANG TRÍ NỀN THEME DECOR (BÊN TRONG APP)
+   ============================================================ */
+.theme-decor-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Candy Decor */
+.decor-candy-layer .candy-cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+}
+.candy-cloud.cloud-1 {
+  width: 140px; height: 70px; top: -20px; left: -30px;
+  box-shadow: 60px 10px 0 -10px rgba(255, 255, 255, 0.7);
+}
+.candy-cloud.cloud-2 {
+  width: 100px; height: 50px; top: 10px; right: -20px;
+  box-shadow: -40px 10px 0 -5px rgba(255, 255, 255, 0.7);
+}
+.candy-star {
+  position: absolute;
+  color: #FFD36E;
+  font-size: 16px;
+  animation: candyTwinkle 3s ease-in-out infinite alternate;
+}
+.star-1 { top: 70px; right: 40px; animation-delay: 0.2s; }
+.star-2 { top: 120px; left: 30px; animation-delay: 1.1s; }
+.star-3 { top: 180px; right: 80px; animation-delay: 2.2s; }
+@keyframes candyTwinkle {
+  0% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1.15) rotate(20deg); }
+}
+
+/* Bear Decor */
+.bear-paw {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.12;
+  user-select: none;
+}
+.paw-1 { top: 90px; right: 24px; transform: rotate(15deg); }
+.paw-2 { top: 150px; right: 50px; transform: rotate(25deg); }
+.paw-3 { top: 220px; right: 30px; transform: rotate(10deg); }
+
+/* Aurora Decor */
+.decor-aurora-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.decor-aurora-layer .aur {
+  position: absolute;
+  inset: -40%;
+  filter: blur(46px);
+  opacity: 0.75;
+}
+.decor-aurora-layer .aur i {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  animation: aurFloat 14s ease-in-out infinite alternate;
+}
+.decor-aurora-layer .aur i:nth-child(1) { background: #A78BFA; left: -10%; top: 0; }
+.decor-aurora-layer .aur i:nth-child(2) { background: #22D3EE; right: -5%; top: 20%; animation-delay: -5s; animation-duration: 17s; }
+.decor-aurora-layer .aur i:nth-child(3) { background: #34D399; left: 20%; bottom: -10%; animation-delay: -9s; animation-duration: 20s; }
+.decor-aurora-layer .aur i:nth-child(4) { background: #F472B6; right: 10%; bottom: 10%; width: 40%; height: 40%; animation-delay: -2s; }
+@keyframes aurFloat {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(14%, 10%) scale(1.25); }
+}
+
+.decor-aurora-layer .dust i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  opacity: 0;
+  animation: twkStars 4s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes twkStars {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(-10px); }
+}
+
+/* Garden Decor */
+.firefly {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #FFD166;
+  box-shadow: 0 0 10px 3px rgba(255, 209, 102, 0.7);
+  animation: flyGarden 7s ease-in-out infinite alternate;
+}
+@keyframes flyGarden {
+  0% { opacity: 0.2; transform: translate(0, 0); }
+  50% { opacity: 0.95; transform: translate(16px, -24px); }
+  100% { opacity: 0.3; transform: translate(-10px, -45px); }
+}
+
+/* Chalk Decor */
+.chalk-star {
+  position: absolute;
+  color: #F9E07F;
+  font-family: 'Coiny', cursive;
+  opacity: 0.6;
+  animation: chalkPulse 2.5s ease-in-out infinite alternate;
+}
+.chalk-star.star-1 { top: 90px; right: 28px; font-size: 24px; }
+.chalk-star.star-2 { top: 160px; left: 24px; font-size: 18px; animation-delay: 1.2s; }
+@keyframes chalkPulse {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 0.85; transform: scale(1.1) rotate(10deg); }
+}
+
+/* Notebook Decor */
+.decor-notebook-layer {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(42, 38, 34, 0.05) 1px, transparent 1px);
+  background-size: 100% 28px;
+}
+.tape-strip {
+  position: absolute;
+  width: 90px;
+  height: 24px;
+  top: 14px;
+  right: 20px;
+  background: rgba(216, 163, 52, 0.35);
+  transform: rotate(-3deg);
+  mix-blend-mode: multiply;
+}
+
+/* Sticker Decor */
+.decor-sticker-layer {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(27, 27, 47, 0.08) 1.5px, transparent 1.6px);
+  background-size: 18px 18px;
+}
+
+/* ============================================================
+   ĐỢT 16 · 3 BỘ GIAO DIỆN THEO MÙA (đủ biến như 8 bộ hiện có)
+   Giá trị chính lấy từ bản vẽ bo-theo-mua.html, đã đo tương phản
+   ============================================================ */
+/* 9. THEME NOEL · ĐÊM TUYẾT (THEO MÙA) */
+[data-theme="noel"] {
+  --c-ok-bg: #1B7343;
+  --c-ok-text: #FFFFFF;
+  --c-bg: #F3F8FC;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #E7F1F8;
+  --c-line: #CFE0EC;
+  --c-text: #17324A;
+  --c-text-2: #4F6578;
+  --c-accent: #C8283F;
+  --c-accent-ink: #B0233A;
+  --c-accent-text: #FFFFFF;
+  --c-accent-2: #1E6B4C;
+  --c-on-accent: #FFFFFF;
+  --c-on-accent-2: #FFFFFF;
+  --c-good: #1F7A47;
+  --c-good-bg: #E3F4EA;
+  --c-good-fg: #1D6B40;
+  --c-on-good: #FFFFFF;
+  --c-warn: #E3A72F;
+  --c-warn-bg: #FFF4D9;
+  --c-warn-line: #F3E2B5;
+  --c-warn-fg: #8A5A00;
+  --c-danger: #B8213A;
+  --c-danger-ink: #A61E33;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #17324A;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFF8E6;
+  --c-read-text: #3A2A10;
+  --c-hint1-bg: #FFF4D9;
+  --c-hint1-line: #E3A72F;
+  --c-btn: linear-gradient(#CC2C44, #B8213A);
+  --c-btn-text: #FFFFFF;
+  --c-nav: #FFFFFF;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-btn: 999px;
+  --border-w: 1.5px;
+  --shadow-card: 0 6px 16px -12px rgba(23, 50, 74, .5);
+  --shadow-btn: 0 6px 0 #8E1A2D;
+  --c-hero-bg: radial-gradient(circle at 80% 0, #2B5A80, #14304A 60%);
+  --c-hero-text: #FFFFFF;
+  --c-hero-text-2: #DCE8F3;
+  --c-hero-gold: #F2C14E;
+  --font-head: 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Nunito', sans-serif;
+  --font-greet: 'Pacifico', cursive;
+}
+
+/* 10. THEME TET · XUÂN SUM VẦY (THEO MÙA) */
+[data-theme="tet"] {
+  --c-ok-bg: #1E7F41;
+  --c-ok-text: #FFFFFF;
+  --c-bg: #FFF5E6;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #FFE9C7;
+  --c-line: #F3D3A3;
+  --c-text: #4A1A0C;
+  --c-text-2: #7A4A33;
+  --c-accent: #C8102E;
+  --c-accent-ink: #B00E28;
+  --c-accent-text: #FFFFFF;
+  --c-accent-2: #E9A800;
+  --c-on-accent: #FFFFFF;
+  --c-on-accent-2: #4A1A0C;
+  --c-good: #23793F;
+  --c-good-bg: #E5F4E7;
+  --c-good-fg: #1F6B37;
+  --c-on-good: #FFFFFF;
+  --c-warn: #E9A800;
+  --c-warn-bg: #FFF3CC;
+  --c-warn-line: #F3D9A0;
+  --c-warn-fg: #845C00;
+  --c-danger: #B00E28;
+  --c-danger-ink: #A00D25;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #4A1A0C;
+  --c-toast-text: #FFF5E6;
+  --c-read-bg: #B00E28;
+  --c-read-text: #FFE7A3;
+  --c-hint1-bg: #FFF3CC;
+  --c-hint1-line: #E9A800;
+  --c-btn: linear-gradient(#CE1C36, #B50F2A);
+  --c-btn-text: #FFF5D6;
+  --c-nav: #FFFFFF;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-btn: 999px;
+  --border-w: 1.5px;
+  --shadow-card: 0 5px 0 #F3D3A3;
+  --shadow-btn: 0 6px 0 #7E0A1D;
+  --c-hero-bg: radial-gradient(circle at 20% 0, #C8102E, #B00E28 65%);
+  --c-hero-text: #FFF5D6;
+  --c-hero-text-2: #FFE7A3;
+  --c-hero-gold: #F6C344;
+  --font-head: 'Be Vietnam Pro', sans-serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+  --font-hand: 'Be Vietnam Pro', sans-serif;
+  --font-greet: 'Lobster', cursive;
+}
+
+/* 11. THEME THIEUNHI · CẦU VỒNG 1/6 (THEO MÙA) */
+[data-theme="thieunhi"] {
+  --c-ok-bg: #169A80;
+  --c-ok-text: #FFFFFF;
+  --c-bg: #F2F8FF;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #E6F0FF;
+  --c-line: #CFE0FA;
+  --c-text: #1D2340;
+  --c-text-2: #4E5675;
+  --c-accent: #2F62E0;
+  --c-accent-ink: #2A56C6;
+  --c-accent-text: #FFFFFF;
+  --c-accent-2: #FF9F1C;
+  --c-on-accent: #FFFFFF;
+  --c-on-accent-2: #1D2340;
+  --c-good: #1FA98F;
+  --c-good-bg: #DFF7F2;
+  --c-good-fg: #127663;
+  --c-on-good: #0B2E28;
+  --c-warn: #FFC93C;
+  --c-warn-bg: #FFF6D6;
+  --c-warn-line: #FFC93C;
+  --c-warn-fg: #8A6100;
+  --c-danger: #D23A50;
+  --c-danger-ink: #C2314A;
+  --c-on-danger: #FFFFFF;
+  --c-toast-bg: #1D2340;
+  --c-toast-text: #FFFFFF;
+  --c-read-bg: #FFF6D6;
+  --c-read-text: #1D2340;
+  --c-hint1-bg: #FFF6D6;
+  --c-hint1-line: #FFC93C;
+  --c-btn: linear-gradient(#3069EA, #2A56C6);
+  --c-btn-text: #FFFFFF;
+  --c-nav: #FFFFFF;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --radius-btn: 999px;
+  --border-w: 1.5px;
+  --shadow-card: 0 6px 0 #CFE0FA;
+  --shadow-btn: 0 6px 0 #1D3F99;
+  --c-hero-bg: linear-gradient(160deg, #2F62E0, #2A56C6);
+  --c-hero-text: #FFFFFF;
+  --c-hero-text-2: #FFFFFF;
+  --c-hero-gold: #FFE38A;
+  --font-head: 'Baloo 2', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-hand: 'Itim', cursive;
+  --font-greet: 'Baloo 2', sans-serif;
+}
+
+/* Bộ icon thanh tab theo mùa: màu đọc từ biến --if --io --is --iw --ip --ia --ic (chỉ trong icon .kch-si) */
+[data-theme="noel"] .kch-si { --is: #17324A; --iw: 1.6; --if: #2E8B57; --io: 1; --ip: #F2C14E; --ia: #C8283F; --ic: #E04A5F; }
+[data-theme="tet"] .kch-si { --is: #4A1A0C; --iw: 1.6; --if: #3E9A55; --io: 1; --ip: #F6C344; --ia: #C8102E; --ic: #E9A800; }
+[data-theme="thieunhi"] .kch-si { --is: #1D2340; --iw: 1.6; --if: #3A86FF; --io: 1; --ip: #FFD23F; --ia: #FF5A5F; --ic: #2EC4B6; }
+
+/* Linh kiện chung (--k) cho 3 bộ theo mùa: thẻ, nút, chip, thanh tab */
+[data-theme="noel"] .stage, [data-theme="noel"] .app,
+[data-theme="tet"] .stage, [data-theme="tet"] .app,
+[data-theme="thieunhi"] .stage, [data-theme="thieunhi"] .app {
+  background: var(--c-bg) !important;
+  color: var(--c-text) !important;
+}
+[data-theme="noel"] .card, [data-theme="noel"] .big-card, [data-theme="noel"] .sheet .pn, [data-theme="noel"] .mini,
+[data-theme="tet"] .card, [data-theme="tet"] .big-card, [data-theme="tet"] .sheet .pn, [data-theme="tet"] .mini,
+[data-theme="thieunhi"] .card, [data-theme="thieunhi"] .big-card, [data-theme="thieunhi"] .sheet .pn, [data-theme="thieunhi"] .mini {
+  border: 1.5px solid var(--c-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+/* Prompt 23I: Bộ theo mùa (Đêm Tuyết, Xuân Sum Vầy, Cầu Vồng) dùng kiểu Phẳng mềm như bộ gốc, bỏ bóng khối cứng dưới đáy */
+[data-theme="noel"] .btn.solid, [data-theme="noel"] .btn.primary,
+[data-theme="tet"] .btn.solid, [data-theme="tet"] .btn.primary,
+[data-theme="thieunhi"] .btn.solid, [data-theme="thieunhi"] .btn.primary {
+  background: var(--c-btn) !important;
+  color: var(--c-btn-text) !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+  font-weight: 800;
+}
+[data-theme="noel"] .btn.ghost, [data-theme="tet"] .btn.ghost, [data-theme="thieunhi"] .btn.ghost {
+  background: var(--c-surface) !important;
+  border: 1.5px solid var(--c-line) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+[data-theme="noel"] .chip, [data-theme="tet"] .chip, [data-theme="thieunhi"] .chip {
+  border-radius: 999px;
+}
+[data-theme="noel"] .tabs, [data-theme="tet"] .tabs, [data-theme="thieunhi"] .tabs {
+  background: var(--c-surface);
+  border-top: 1.5px solid var(--c-line);
+}
+[data-theme="noel"] .tabs .ic svg, [data-theme="tet"] .tabs .ic svg, [data-theme="thieunhi"] .tabs .ic svg { opacity: .78; transition: transform .15s; }
+[data-theme="noel"] .tabs .on, [data-theme="tet"] .tabs .on, [data-theme="thieunhi"] .tabs .on {
+  color: var(--c-accent-ink);
+  background: var(--c-surface-2);
+}
+[data-theme="noel"] .tabs .on .ic svg, [data-theme="tet"] .tabs .on .ic svg, [data-theme="thieunhi"] .tabs .on .ic svg {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.12);
+}
+[data-theme="noel"] .bnav, [data-theme="tet"] .bnav, [data-theme="thieunhi"] .bnav {
+  background: var(--c-surface) !important;
+  border-top: 1.5px solid var(--c-line) !important;
+}
+[data-theme="noel"] h1, [data-theme="noel"] h2, [data-theme="noel"] .title { font-weight: 900; }
+[data-theme="tet"] h1, [data-theme="tet"] h2, [data-theme="tet"] .title { font-weight: 800; }
+[data-theme="thieunhi"] h1, [data-theme="thieunhi"] h2, [data-theme="thieunhi"] .title { font-weight: 800; }
+
+/* Prompt 23O - B3: Sticker Studio card text contrast */
+[data-theme="sticker"] .card.plum,
+[data-theme="sticker"] .big-card.plum,
+[data-theme="sticker"] .card.sky,
+[data-theme="sticker"] .big-card.sky {
+  color: #FFFFFF !important;
+}
+[data-theme="sticker"] .card.plum *,
+[data-theme="sticker"] .big-card.plum *,
+[data-theme="sticker"] .card.sky *,
+[data-theme="sticker"] .big-card.sky * {
+  color: #FFFFFF !important;
+}
+
+/* Prompt 23T / 23Q Mục 1: Nút trong thẻ nền màu phải có nền trắng và chữ đậm #1B1B2F */
+[data-theme="sticker"] .card.plum .btn,
+[data-theme="sticker"] .card.plum button,
+[data-theme="sticker"] .big-card.plum .btn,
+[data-theme="sticker"] .big-card.plum button,
+[data-theme="sticker"] .card.sky .btn,
+[data-theme="sticker"] .card.sky button,
+[data-theme="sticker"] .big-card.sky .btn,
+[data-theme="sticker"] .big-card.sky button {
+  background: #FFFFFF !important;
+  color: #1B1B2F !important;
+  border: 3px solid #1B1B2F !important;
+  font-weight: 800 !important;
+}
+[data-theme="sticker"] .card.plum .btn *,
+[data-theme="sticker"] .card.plum button *,
+[data-theme="sticker"] .big-card.plum .btn *,
+[data-theme="sticker"] .big-card.plum button *,
+[data-theme="sticker"] .card.sky .btn *,
+[data-theme="sticker"] .card.sky button *,
+[data-theme="sticker"] .big-card.sky .btn *,
+[data-theme="sticker"] .big-card.sky button * {
+  color: #1B1B2F !important;
+}

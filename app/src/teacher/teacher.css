@@ -1,0 +1,187 @@
+/* Đợt 15 · Chặng 5: bố cục đáp ứng cho cổng giáo viên.
+   29/10/2026: chuyển sang kiểu kính mờ xanh ngọc như admin (màu kính, nền ảnh ở teacher-glass.css). */
+
+.tp-root { font-family: var(--s-font-body); }
+.tp-root .sk-kpi-label { font-size: 12.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--s-text-2); }
+.tp-root .sk-kpi-value { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; }
+.tp-root .sk-kpi-sub { font-weight: 600; }
+
+/* ---------- Hàng tiêu đề mục + nút hành động (một tấm kính) ---------- */
+.tp-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; padding: 14px 18px; }
+.tp-head > :first-child { min-width: 0; flex: 1; }
+.tp-head h2, .tp-head h3 { margin: 0; color: var(--s-text); font-family: var(--s-font-head); font-size: 18px !important; font-weight: 700 !important; line-height: 1.3; }
+.tp-head p { margin: 4px 0 0; font-size: 13.5px; color: var(--s-text-2); line-height: 1.45; }
+.tp-head-actions { display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+
+/* ---------- Lưới thẻ chỉ số ---------- */
+.tp-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.tp-kpi-grid.tp-kpi-sm { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tp-kpi-grid .sk-kpi { padding: 16px 18px; }
+
+/* ---------- Đầu lớp: tên lớp lớn trên ảnh, mã lớp và hai nút bên phải ---------- */
+.tp-class-banner { margin-bottom: 18px; }
+.tp-class-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tp-class-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tp-code {
+  display: flex; flex-direction: column; justify-content: center; text-align: center; min-height: 52px; padding: 4px 16px; border-radius: 14px;
+  background: var(--tg-glass-strong, #fff); border: 1.5px dashed #13A89E; color: #14262B; text-shadow: none;
+}
+.tp-code small { font-size: 12px; color: #33484D; font-weight: 600; }
+.tp-code b { font-size: 20px; font-weight: 800; color: #14262B; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.tp-code-inline { display: none; }
+.tp-pill-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 999px; padding: 8px 18px;
+  font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; text-shadow: none; white-space: nowrap;
+}
+.tp-pill-btn.tp-soft { background: var(--tg-glass-strong, #fff); color: #0A6A63; border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 6px 20px rgba(20, 45, 50, 0.12); }
+.tp-pill-btn.tp-soft:hover { background: #FFFFFF; }
+.tp-pill-btn.tp-main { background: #0B7C74; color: #FFFFFF; border: none; box-shadow: 0 8px 20px rgba(11, 124, 116, 0.32); }
+.tp-pill-btn.tp-main:hover { background: #08605A; }
+
+/* ---------- Thanh tab của lớp: dải kính, mục đang chọn là viên thuốc xanh ngọc ---------- */
+.tp-tabs-wrap { position: relative; margin-bottom: 18px; max-width: 100%; display: flex; }
+.tp-tabs {
+  display: inline-flex; gap: 4px; padding: 4px; max-width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  border-radius: 16px; background: var(--tg-glass, #fff); border: 1px solid var(--tg-glass-line, #D6E4E1);
+  -webkit-backdrop-filter: var(--tg-blur); backdrop-filter: var(--tg-blur); box-shadow: var(--tg-shadow-sm, none);
+}
+.tp-tabs::-webkit-scrollbar { display: none; }
+/* Còn tab bị khuất bên phải: mờ dần mép phải (không phụ thuộc màu nền) */
+.tp-tabs-wrap.tp-more .tp-tabs { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent); }
+.tp-tab {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 12px; border: none;
+  background: transparent; color: #22383D; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: inherit;
+}
+.tp-tab:hover { background: rgba(255, 255, 255, 0.7); }
+.tp-tab.tp-on { background: #0B7C74; color: #FFFFFF; box-shadow: 0 4px 12px rgba(11, 124, 116, 0.28); }
+.tp-tab-count { font-size: 12px; font-weight: 700; background: #FFF1E6; color: #9A4A00; border-radius: 999px; padding: 1px 8px; }
+.tp-tab.tp-on .tp-tab-count { background: rgba(255, 255, 255, 0.25); color: #FFFFFF; }
+
+/* ---------- Thẻ bài tập ---------- */
+.tp-asg-card { padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.tp-asg-card > :first-child { flex: 1; min-width: 0; }
+.tp-asg-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* ---------- Danh sách học sinh: bảng trên máy tính, thẻ trên điện thoại ---------- */
+.tp-st-cards { display: none; flex-direction: column; gap: 10px; }
+.tp-st-card { padding: 14px 16px; display: grid; gap: 8px; }
+.tp-st-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tp-st-card-top b { font-size: 15px; color: var(--s-text); }
+.tp-st-card-meta { font-size: 13px; color: var(--s-text-2); }
+.tp-st-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tp-st-card-actions > * { min-height: 44px; }
+
+/* ---------- Kết quả ---------- */
+.tp-res-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 18px; align-items: start; }
+.tp-steps { display: grid; grid-template-columns: minmax(90px, 170px) 1fr 44px; gap: 10px 12px; align-items: center; font-size: 13.5px; color: var(--s-text); }
+.tp-steps .tp-bar { height: 12px; border-radius: 999px; background: rgba(20, 45, 50, 0.08); overflow: hidden; }
+.tp-steps .tp-bar i { display: block; height: 100%; background: #9ADBD3; border-radius: 999px; }
+.tp-steps .tp-top i { background: linear-gradient(90deg, #3CC9B9, #0B7C74); }
+.tp-steps .tp-top { font-weight: 800; }
+.tp-steps b { text-align: right; font-variant-numeric: tabular-nums; }
+.tp-lb { font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #0A6A63; }
+.tp-assist { -webkit-backdrop-filter: var(--tg-blur); backdrop-filter: var(--tg-blur); display: grid; grid-template-columns: 46px 1fr; gap: 10px; background: rgba(227, 246, 243, 0.82); border: 1px solid rgba(19, 168, 158, 0.28); border-radius: 16px; padding: 14px 16px; }
+.tp-assist ol { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13.5px; color: var(--s-text); line-height: 1.5; }
+.tp-assist small { display: block; margin-top: 6px; font-size: 12px; color: var(--s-text-2); }
+
+/* ---------- Thông báo & nhắc việc ---------- */
+.tp-rem-grid { display: grid; grid-template-columns: minmax(300px, 460px) 1fr; gap: 20px; align-items: start; }
+.tp-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 6px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+  border: 1px solid rgba(20, 45, 50, 0.12); background: rgba(255, 255, 255, 0.85); color: var(--s-text); font-family: inherit;
+}
+.tp-chip:hover { background: #FFFFFF; }
+.tp-chip.tp-on { border-color: #0B7C74; background: #0B7C74; color: #FFFFFF; }
+.tp-chip svg { flex-shrink: 0; }
+.tp-stat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: rgba(255, 255, 255, 0.62); border: 1px solid rgba(255, 255, 255, 0.85); padding: 10px 12px; border-radius: 12px; text-align: center; }
+.tp-stat3 b { display: block; font-size: 20px; color: var(--s-text); font-variant-numeric: tabular-nums; }
+.tp-stat3 span { font-size: 12.5px; color: var(--s-text-2); }
+
+/* ---------- Biểu mẫu nhiều cột ---------- */
+.tp-form-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.tp-form-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+.tp-form-11 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---------- Thanh tab dưới (điện thoại) ---------- */
+.tp-bottom-tab { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: none; border: none; cursor: pointer; padding: 4px 2px; font-family: inherit; }
+.tp-bottom-tab span:last-child { font-size: 12px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+/* ---------- Lưới thẻ lớp ---------- */
+.tp-class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.tp-class-card { cursor: pointer; text-align: left; transition: transform .15s ease, box-shadow .15s ease; }
+.tp-class-card:hover { transform: translateY(-2px); }
+.tp-new-class { transition: background-color .15s ease; }
+.tp-new-class:hover { background-color: rgba(255, 255, 255, 0.78) !important; }
+
+@media (max-width: 899px) {
+  .tp-res-grid, .tp-rem-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 639px) {
+  .tp-head { flex-direction: column; align-items: stretch; padding: 14px; }
+  .tp-head-actions { width: 100%; }
+  .tp-head-actions > * { flex: 1 1 100%; width: 100%; min-height: 44px; }
+
+  .tp-kpi-grid, .tp-kpi-grid.tp-kpi-sm { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .tp-kpi-grid .sk-kpi, .tp-kpi-grid > * { padding: 12px 14px !important; min-width: 0; }
+  .tp-kpi-grid .sk-kpi-value { font-size: 24px; }
+
+  .tp-class-banner .tp-hide-sm { display: none; }
+  .tp-code-inline {
+    display: inline-flex; align-items: center; gap: 4px; min-height: 30px; font-size: 14px; font-weight: 700; color: #14262B; text-shadow: none;
+    background: var(--tg-glass-strong, #fff); border: 1.5px dashed #13A89E; border-radius: 999px; padding: 2px 12px; letter-spacing: .06em;
+  }
+  .tp-class-actions { width: 100%; gap: 8px; }
+  .tp-class-actions .tp-code { display: none; }
+  .tp-class-actions .tp-pill-btn { flex: 1; min-height: 48px; padding: 6px 12px; }
+
+  .tp-asg-card { flex-direction: column; align-items: stretch; padding: 14px; }
+  .tp-asg-actions { width: 100%; }
+  .tp-asg-actions > * { flex: 1; min-height: 44px; }
+
+  .tp-st-table { display: none; }
+  .tp-st-cards { display: flex; }
+
+  .tp-form-2, .tp-form-3, .tp-form-11 { grid-template-columns: 1fr; }
+  .tp-steps { grid-template-columns: minmax(80px, 130px) 1fr 32px; font-size: 13px; }
+  .tp-class-grid { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Prompt 29A · Quản lý thông báo của cô: menu thao tác, trạng thái, hạn hiển thị */
+.tp-ann-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
+.tp-ann-card { position: relative; }
+/* Menu mở thì thẻ đó nằm trên các thẻ sau (mỗi thẻ kính là một lớp riêng) */
+.tp-ann-card:has(.tp-ann-menu) { z-index: 20; }
+.tp-ann-card.tp-ann-expired > div, .tp-ann-card.tp-ann-hidden > div { opacity: .86; }
+.tp-ann-card.tp-ann-deleted > div { opacity: .7; }
+.tp-ann-menu-wrap { position: relative; margin-left: auto; }
+.tp-ann-more {
+  width: 44px; height: 44px; display: inline-grid; place-items: center; border-radius: 12px; border: 1px solid rgba(20, 45, 50, 0.12);
+  background: rgba(255, 255, 255, 0.85); color: var(--s-text); cursor: pointer; padding: 0;
+}
+.tp-ann-more:hover { background: #FFFFFF; }
+.tp-ann-more:disabled { opacity: .5; cursor: progress; }
+.tp-ann-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 240px; display: flex; flex-direction: column; padding: 6px; border-radius: 16px;
+  background: var(--tg-glass-strong, #fff); border: 1px solid var(--tg-glass-line, #D6E4E1);
+  -webkit-backdrop-filter: var(--tg-blur); backdrop-filter: var(--tg-blur); box-shadow: 0 14px 34px rgba(20, 45, 50, .22);
+}
+.tp-ann-menu button {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 12px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; color: var(--s-text);
+}
+.tp-ann-menu button svg { color: #0B7C74; flex-shrink: 0; }
+.tp-ann-menu button:hover, .tp-ann-menu button:focus-visible { background: rgba(11, 124, 116, 0.08); }
+.tp-ann-menu button.tp-ann-danger, .tp-ann-menu button.tp-ann-danger svg { color: #B42318; }
+.tp-ann-hint {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: flex-start; gap: 8px; min-height: 44px; padding: 10px 12px; border-radius: 12px;
+  background: #FFF1E6; border: 1px dashed #E8A877; color: #7A3A00; font-size: 13.5px; line-height: 1.45;
+}
+.tp-ann-hint svg { flex-shrink: 0; margin-top: 1px; }
+.tp-ann-date { min-height: 44px; padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(20, 45, 50, 0.16); font: inherit; font-size: 14px; color: var(--s-text); background: rgba(255, 255, 255, 0.9); }
+/* Nút thao tác luôn ở góc phải trên của thẻ (không rớt xuống dòng riêng trên điện thoại) */
+.tp-ann-card .tp-ann-menu-wrap { position: absolute; top: 10px; right: 10px; margin: 0; }
+.tp-ann-card > div > div:first-child { padding-right: 52px; min-height: 30px; }
+/* Menu nổi nằm trong thẻ kính: kính lồng nhau không làm mờ được chữ phía sau, nên dùng nền gần đặc */
+.tp-ann-menu { background: rgba(255, 255, 255, 0.98); }
