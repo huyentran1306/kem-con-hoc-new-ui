@@ -13,16 +13,10 @@ import {
   checkAnswerLeakage,
 } from './calmCornerData'
 import { BlowingMiniGame } from './BlowingMiniGame'
-import { Heart, X, HelpCircle, PersonStanding, Wind, Moon, ArrowLeftRight, ArrowRight } from 'lucide-react'
-import './calmCorner.css'
-
-// UI mới: icon nét đơn sắc thay emoji trang trí cho 4 ô lý do
-const CC_ICONS = { not_understood: HelpCircle, distracted: PersonStanding, frustrated: Wind, late: Moon }
 import { soundPop, soundSuccess, soundBreathe } from './audio'
 import { aiChat } from './api'
 import { renderPrompt } from './promptStudio'
 import { swapMe } from './xungHo'
-import { CALM_LINES } from './data'
 
 export function CalmCornerModal({
   isOpen,
@@ -37,8 +31,9 @@ export function CalmCornerModal({
   onSaveAndStop,
   onRecordCalmEvent,
   triggerType = 'manual', // 'manual' | 'nudge'
+  inLesson = true, // Gói 41: ngoài giờ học thì ẩn các việc chỉ dành cho bài đang làm
 }) {
-  const [view, setView] = useState('breathe') // 'breathe' | 'reasons' | 'move_game' | 'blowing' | 'role_swap' | 'phrase'
+  const [view, setView] = useState('reasons') // 'reasons' | 'move_game' | 'blowing' | 'role_swap' | 'phrase'
   const [selectedReason, setSelectedReason] = useState(null)
 
   // Move Game state
@@ -61,29 +56,13 @@ export function CalmCornerModal({
   // Reset view when opened
   useEffect(() => {
     if (isOpen) {
-      setView('breathe')
+      setView('reasons')
       setSelectedReason(null)
       setChildStars(null)
       setIsHintFolded(true)
     }
   }, [isOpen])
 
-
-  // Hít thở: đổi pha mỗi 4 giây, có tiếng chuông nhẹ theo pha (soundBreathe)
-  const [breathPhase, setBreathPhase] = useState('in')
-  useEffect(() => {
-    if (!isOpen || view !== 'breathe') return undefined
-    setBreathPhase('in')
-    soundBreathe('in')
-    const t = setInterval(() => {
-      setBreathPhase((p) => {
-        const next = p === 'in' ? 'out' : 'in'
-        soundBreathe(next)
-        return next
-      })
-    }, 4000)
-    return () => clearInterval(t)
-  }, [isOpen, view])
 
   const steps = currentProblem?.steps || []
   const currentStep = steps[currentStepIndex] || steps[0] || {}
@@ -264,46 +243,34 @@ export function CalmCornerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="cc-scrim">
-      <div className="card pop cc-pn" role="dialog" aria-modal="true" aria-labelledby="cc-title">
-        <div className="cc-grab" aria-hidden="true" />
-        {/* ========================================================
-            VIEW 0 (mặc định khi bấm nút nổi): HÍT THỞ 4 GIÂY VÀO, 4 GIÂY RA (như bản CalmSheet cũ)
-            ======================================================== */}
-        {view === 'breathe' && (
-          <div className="cc-reasons cc-breathe" data-testid="calm-breathe">
-            <div className="cc-head">
-              <span className="cc-head-ic" aria-hidden="true"><Wind /></span>
-              <h3 id="cc-title">Hít thở cùng mình 30 giây</h3>
-              <button className="cc-x" onClick={onClose} aria-label="Đóng">
-                <X aria-hidden="true" />
-              </button>
-            </div>
-            <div className="cc-breath-wrap">
-              <div className={`cc-breath ${breathPhase === 'in' ? 'in' : 'out'}`} aria-live="polite">
-                {breathPhase === 'in' ? 'Hít vào…' : 'Thở ra…'}
-              </div>
-              <span className="cc-breath-sub">Hít 4 giây · thở ra 4 giây</span>
-            </div>
-            <div className="cc-say no">
-              <span className="cc-say-l">Thay vì nói</span>
-              <span className="cc-strike">"{CALM_LINES.replace}"</span>
-            </div>
-            <div className="cc-say yes">
-              <span className="cc-say-l">Thử nói</span>
-              <span>"{swapMe(CALM_LINES.trySay, parentName.toLowerCase())}"</span>
-            </div>
-            <button type="button" className="btn-km btn-km-primary cc-cta" onClick={onClose} data-testid="calm-ok">
-              Mình ổn rồi
-            </button>
-            <button type="button" className="cc-row cc-more" onClick={() => setView('reasons')} data-testid="calm-more">
-              <HelpCircle aria-hidden="true" />
-              <span>Thêm cách khác (con chưa hiểu, mất tập trung, thổi cùng con...)</span>
-              <ArrowRight aria-hidden="true" />
-            </button>
-          </div>
-        )}
-
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
+        background: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        padding: '0 12px 16px',
+        animation: 'fadeIn 0.25s ease-out',
+      }}
+    >
+      <div
+        className="card pop"
+        style={{
+          width: '100%',
+          maxWidth: 480,
+          background: 'var(--c-surface, #FFFFFF)',
+          borderRadius: 28,
+          padding: '22px 20px',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          border: '1.5px solid var(--c-line, #E2E8F0)',
+        }}
+      >
         {/* ========================================================
             VIEW 1: CHỌN LÝ DO (4 Ô CHÍNH + 2 HÀNG PHỤ)
             ======================================================== */}
@@ -311,7 +278,7 @@ export function CalmCornerModal({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--c-text)' }}>Gợi ý khi con chưa hiểu</h3>
-              <button className="round-btn" style={{ width: 32, height: 32, fontSize: 14 }} onClick={onClose} aria-label="Đóng">✕</button>
+              <button className="round-btn" style={{ width: 44, height: 44, fontSize: 15 }} onClick={onClose} aria-label="Đóng">✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
               <div className="card-km" style={{ padding: '12px 14px', background: 'var(--c-surface-2, #F8FAFC)', border: '1px solid var(--c-line, #E2E8F0)', borderRadius: 14 }}>
@@ -334,17 +301,19 @@ export function CalmCornerModal({
         )}
 
         {view === 'reasons' && (
-          <div className="cc-reasons">
-            <div className="cc-head">
-              <span className="cc-head-ic" aria-hidden="true"><Heart /></span>
-              <h3 id="cc-title">
-                Điều gì đang khó, {parentName.toLowerCase()} ơi?
-              </h3>
-              <button className="cc-x" onClick={onClose} aria-label="Đóng">
-                <X aria-hidden="true" />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 24 }}>🫧</span>
+                <h3 style={{ fontSize: 19, fontWeight: 800, margin: 0, color: 'var(--c-text)' }}>
+                  Điều gì đang khó, {parentName.toLowerCase()} ơi?
+                </h3>
+              </div>
+              <button className="round-btn" onClick={onClose} aria-label="Đóng" style={{ width: 44, height: 44, fontSize: 15 }}>
+                ✕
               </button>
             </div>
-            <p className="cc-lead">
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--c-text-2)' }}>
               {currentProblem ? (
                 <>Chọn một ô, app gợi ý việc làm ngay. Bài đang làm vẫn giữ ở <b>Bậc {currentStepIndex + 1}</b>.</>
               ) : (
@@ -353,40 +322,78 @@ export function CalmCornerModal({
             </p>
 
             {/* 4 Ô CHÍNH */}
-            <div className="cc-tiles">
-              {CALM_REASONS.map((r) => {
-                const Ic = CC_ICONS[r.id] || HelpCircle
-                return (
-                  <button key={r.id} type="button" className="cc-tile" onClick={() => handleSelectReason(r)}>
-                    <span className="cc-tile-ic" aria-hidden="true"><Ic /></span>
-                    <b>{swapMe(r.title, parentName.toLowerCase())}</b>
-                    <span>{swapMe(r.desc, parentName.toLowerCase())}</span>
-                  </button>
-                )
-              })}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+              {CALM_REASONS.filter((r) => inLesson || r.id !== 'late').map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => handleSelectReason(r)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    textAlign: 'left',
+                    gap: 6,
+                    padding: '14px 12px',
+                    borderRadius: 18,
+                    background: 'var(--c-surface-2, #F8FAFC)',
+                    border: '1.5px solid var(--c-line, #E2E8F0)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <span style={{ fontSize: 28 }}>{r.emoji}</span>
+                  <b style={{ fontSize: 14.5, color: 'var(--c-text)' }}>{swapMe(r.title, parentName.toLowerCase())}</b>
+                  <span style={{ fontSize: 11.5, color: 'var(--c-text-2)', lineHeight: 1.3 }}>{swapMe(r.desc, parentName.toLowerCase())}</span>
+                </button>
+              ))}
             </div>
 
             {/* 2 HÀNG BÊN DƯỚI */}
-            <div className="cc-rows">
-              <button type="button" className="cc-row" onClick={startRoleSwap}>
-                <ArrowLeftRight aria-hidden="true" />
-                <span>Đổi vai 2 phút (Cô {child?.name || 'con'} hỏi {parentName.toLowerCase()})</span>
-                <ArrowRight aria-hidden="true" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+              {inLesson && steps.length > 0 && (
+              <button
+                className="btn ghost"
+                style={{
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                }}
+                onClick={startRoleSwap}
+              >
+                <span>🎭 Đổi vai 2 phút (Cô {child?.name || 'con'} hỏi {parentName.toLowerCase()})</span>
+                <span>➔</span>
               </button>
+              )}
 
-              <button type="button" className="cc-row" onClick={() => setView('blowing')}>
-                <Wind aria-hidden="true" />
-                <span>Chỉ muốn thở một chút (Thổi cùng con)</span>
-                <ArrowRight aria-hidden="true" />
+              <button
+                className="btn ghost"
+                style={{
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                }}
+                onClick={() => setView('blowing')}
+              >
+                <span>🌬️ Chỉ muốn thở một chút (Thổi cùng con)</span>
+                <span>➔</span>
               </button>
             </div>
 
             <button
               type="button"
-              className="btn-km btn-km-primary cc-cta"
+              className="btn-km btn-km-primary"
+              style={{ width: '100%', height: 48, borderRadius: 16, fontSize: 14, fontWeight: 700 }}
               onClick={onClose}
             >
-              Quay lại bài đang làm <ArrowRight aria-hidden="true" />
+              {inLesson ? 'Quay lại bài đang làm ➔' : 'Đóng'}
             </button>
           </div>
         )}
@@ -492,8 +499,8 @@ export function CalmCornerModal({
               style={{
                 borderRadius: 14,
                 padding: '10px 12px',
-                background: '#FEF3C7',
-                border: '1px solid #FCD34D',
+                background: 'var(--c-warn-bg, #FEF3C7)',
+                border: '1px solid var(--c-warn-line, #FCD34D)',
                 marginBottom: 16,
               }}
             >
@@ -505,7 +512,7 @@ export function CalmCornerModal({
                   cursor: 'pointer',
                   fontWeight: 700,
                   fontSize: 12.5,
-                  color: '#92400E',
+                  color: 'var(--c-warn-fg, #92400E)',
                 }}
                 onClick={() => setIsHintFolded(!isHintFolded)}
               >
@@ -513,7 +520,7 @@ export function CalmCornerModal({
                 <span style={{ fontSize: 14, fontWeight: 800 }}>{isHintFolded ? '▾' : '▴'}</span>
               </div>
               {!isHintFolded && (
-                <div style={{ marginTop: 8, fontSize: 13, color: '#78350F', lineHeight: 1.4 }}>
+                <div style={{ marginTop: 8, fontSize: 13, color: 'var(--c-text, #78350F)', lineHeight: 1.4 }}>
                   {parentName} thử trả lời: <b>"{intentionalWrongAnswer}"</b> để xem {child?.name} có phát hiện ra chỗ sai và sửa giúp {parentName.toLowerCase()} không nhé!
                 </div>
               )}
@@ -580,17 +587,17 @@ export function CalmCornerModal({
             {/* Thay vì nói (gạch ngang) */}
             <div
               style={{
-                background: '#FFF1F2',
-                border: '1.5px solid #FECDD3',
+                background: 'var(--c-surface-2, #FFF1F2)',
+                border: '1.5px solid var(--c-line, #FECDD3)',
                 borderRadius: 14,
                 padding: '10px 14px',
                 marginBottom: 10,
               }}
             >
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#E11D48', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--c-danger-ink, #E11D48)', textTransform: 'uppercase' }}>
                 Thay vì buột miệng nói:
               </span>
-              <p style={{ margin: '4px 0 0', fontSize: 13.5, color: '#9F1239', textDecoration: 'line-through' }}>
+              <p style={{ margin: '4px 0 0', fontSize: 13.5, color: 'var(--c-text, #9F1239)', textDecoration: 'line-through' }}>
                 "{swapMe(calmPhrase.thay_vi_noi, parentName.toLowerCase())}"
               </p>
             </div>
@@ -598,17 +605,17 @@ export function CalmCornerModal({
             {/* Thử nói (ấm áp) */}
             <div
               style={{
-                background: '#ECFDF5',
-                border: '1.5px solid #A7F3D0',
+                background: 'var(--c-good-bg, #ECFDF5)',
+                border: '1.5px solid var(--c-good, #A7F3D0)',
                 borderRadius: 14,
                 padding: '12px 14px',
                 marginBottom: 12,
               }}
             >
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#059669', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--c-good-fg, #059669)', textTransform: 'uppercase' }}>
                 {parentName} thử nói nhẹ nhàng:
               </span>
-              <p style={{ margin: '4px 0 0', fontSize: 15, fontWeight: 700, color: '#065F46', lineHeight: 1.4 }}>
+              <p style={{ margin: '4px 0 0', fontSize: 15, fontWeight: 700, color: 'var(--c-text, #065F46)', lineHeight: 1.4 }}>
                 "{swapMe(calmPhrase.thu_noi, parentName.toLowerCase())}"
               </p>
             </div>

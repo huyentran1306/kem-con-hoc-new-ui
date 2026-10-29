@@ -241,8 +241,8 @@ export function AdminOverviewTab({ token, onNavigateTab }) {
             </div>
             <div className="kov-mini">
               <div className="kov-k">Học sinh</div>
-              <div className="kov-v">{m.totalStudents != null ? fmtNum(m.totalStudents) : dash}</div>
-              <div className="kov-h">{m.totalStudents == null && !firstLoad ? 'Chưa có dữ liệu' : m.activeStudents != null ? `${fmtNum(m.activeStudents)} bạn có buổi học` : 'Tổng hồ sơ con'}</div>
+              <div className="kov-v">{(m.totalStudents ?? m.activeStudents) != null ? fmtNum(m.totalStudents ?? m.activeStudents) : dash}</div>
+              <div className="kov-h">{(m.totalStudents ?? m.activeStudents) == null && !firstLoad ? 'Chưa có dữ liệu' : m.activeStudents != null ? `${fmtNum(m.activeStudents)} bạn có buổi học` : 'Tổng hồ sơ con'}</div>
             </div>
           </div>
         </section>
