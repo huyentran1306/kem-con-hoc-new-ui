@@ -5053,47 +5053,51 @@ function CardGame() {
 
 /* ---------- ĐỒNG HỒ: phản xạ bấm đúng thời gian ---------- */
 function ClockGame() {
-  const { toast, boom } = useContext(AppCtx)
+  const { toast, boom, S, Ho = "Bố mẹ" } = useContext(AppCtx)
+  // Gói 40: hai người chơi là phụ huynh đang cầm máy và con (trước đây ghi cứng Mẹ rồi Bố)
+  const kid = (S?.children || []).find((c) => c.id === S?.activeId)?.name || "Con"
+  const P1 = Ho
+  const P2 = kid === Ho ? `${kid} (con)` : kid
   const randTarget = () => (1.5 + Math.random() * 3).toFixed(2)
   const [target, setTarget] = useState(randTarget)
-  const [phase, setPhase] = useState('ready')
+  const [phase, setPhase] = useState("ready")
   const [t0, setT0] = useState(0)
   const [elapsed, setElapsed] = useState(null)
   const [round, setRound] = useState(1)
   const [scores, setScores] = useState([])
   const TOTAL_ROUNDS = 4
 
-  const player = round % 2 === 1 ? 'Mẹ' : 'Bố'
+  const player = round % 2 === 1 ? P1 : P2
 
   const start = () => {
-    setPhase('running')
+    setPhase("running")
     setT0(Date.now())
   }
 
   const stop = () => {
-    if (phase !== 'running') return
+    if (phase !== "running") return
     const el = (Date.now() - t0) / 1000
     const dev = Math.abs(el - parseFloat(target))
     setElapsed(el)
-    setPhase('done')
+    setPhase("done")
     setScores((s) => [...s, { player, dev }])
     if (scores.length + 1 >= TOTAL_ROUNDS) {
       boom()
-      toast('Hết 4 lượt, so kết quả nhé! 🎉')
+      toast("Hết 4 lượt, so kết quả nhé! 🎉")
     }
   }
 
   const next = () => {
     setTarget(randTarget())
-    setPhase('ready')
+    setPhase("ready")
     setElapsed(null)
     setRound((r) => r + 1)
   }
 
-  const momDev = scores.filter((s) => s.player === 'Mẹ').reduce((a, s) => a + s.dev, 0)
-  const dadDev = scores.filter((s) => s.player === 'Bố').reduce((a, s) => a + s.dev, 0)
+  const p1Dev = scores.filter((s) => s.player === P1).reduce((a, s) => a + s.dev, 0)
+  const p2Dev = scores.filter((s) => s.player === P2).reduce((a, s) => a + s.dev, 0)
   const finished = scores.length >= TOTAL_ROUNDS
-  const winner = finished ? (momDev === dadDev ? 'Hòa' : momDev < dadDev ? 'Mẹ' : 'Bố') : null
+  const winner = finished ? (p1Dev === p2Dev ? "Hòa" : p1Dev < p2Dev ? P1 : P2) : null
 
   return (
     <div className="card plum">
@@ -5101,16 +5105,16 @@ function ClockGame() {
         <span className="pill p">Phản xạ</span>
         <span className="pill g">Lượt {Math.min(round, TOTAL_ROUNDS)}/{TOTAL_ROUNDS}</span>
       </div>
-      <b style={{ fontSize: 16 }}>Bấm đúng thời gian</b>
+      <b style={{ fontSize: 16 }}>⏰ Bấm đúng thời gian</b>
       <span style={{ fontSize: 13.5 }}>
-        Mục tiêu: bấm Dừng gần đúng <b>{target}s</b>. Mẹ và bố luân phiên, ai lệch ít hơn thì thắng!
+        Mục tiêu: bấm Dừng gần đúng <b>{target}s</b>. {P1} và {P2} luân phiên, ai lệch ít hơn thì thắng!
       </span>
 
       <div className="timer" style={{ fontSize: 44 }}>{target}s</div>
 
-      {phase === 'running' && <div className="timer" style={{ color: 'var(--coral)' }}>⏳ đang chạy…</div>}
-      {phase === 'done' && (
-        <div className={`card ${Math.abs(elapsed - parseFloat(target)) < 0.3 ? 'mint' : 'sun'} pop`}>
+      {phase === "running" && <div className="timer" style={{ color: "var(--coral)" }}>⏳ đang chạy…</div>}
+      {phase === "done" && (
+        <div className={`card ${Math.abs(elapsed - parseFloat(target)) < 0.3 ? "mint" : "sun"} pop`}>
           <span className="lbl plum">Lượt của {player}</span>
           <b style={{ fontSize: 17 }}>{elapsed.toFixed(2)}s, lệch {Math.abs(elapsed - parseFloat(target)).toFixed(2)}s</b>
           {Math.abs(elapsed - parseFloat(target)) < 0.3 && <span className="sub">Siêu chuẩn! 🎯</span>}
@@ -5118,11 +5122,11 @@ function ClockGame() {
       )}
 
       <div className="btns">
-        {phase === 'ready' && <button className="btn solid" onClick={start}>Bắt đầu ({player})</button>}
-        {phase === 'running' && <button className="btn coral" onClick={stop}>Dừng!</button>}
-        {phase === 'done' && !finished && <button className="btn solid" onClick={next}>Lượt tiếp theo</button>}
+        {phase === "ready" && <button className="btn solid" onClick={start}>▶ Bắt đầu ({player})</button>}
+        {phase === "running" && <button className="btn coral" onClick={stop}>⏹ Dừng!</button>}
+        {phase === "done" && !finished && <button className="btn solid" onClick={next}>Lượt tiếp theo</button>}
         {finished && (
-          <button className="btn solid" onClick={() => { setScores([]); setRound(1); setTarget(randTarget()); setPhase('ready'); setElapsed(null) }}>
+          <button className="btn solid" onClick={() => { setScores([]); setRound(1); setTarget(randTarget()); setPhase("ready"); setElapsed(null) }}>
             Chơi lại
           </button>
         )}
@@ -5136,7 +5140,7 @@ function ClockGame() {
           ))}
           {finished && (
             <b style={{ fontSize: 15 }}>
-              {winner === 'Hòa' ? 'Hòa nhau! Chơi thêm ván nữa nhé 🤝' : `🎉 ${winner} thắng!`}
+              {winner === "Hòa" ? "Hòa nhau! Chơi thêm ván nữa nhé 🤝" : `🎉 ${winner} thắng!`}
             </b>
           )}
         </div>
